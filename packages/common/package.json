@@ -1,0 +1,31 @@
+{
+  "name": "@theta-rpc/common",
+  "version": "0.0.0",
+  "description": "JSON-RPC 2.0 server for nodejs, written in typescript",
+  "author": "Capgop <capgop0@gmail.com>",
+  "homepage": "https://github.com/Capgop/theta-rpc#readme",
+  "license": "MIT",
+  "main": "lib/index.js",
+  "types": "lib/index.d.ts",
+  "directories": {
+    "lib": "lib"
+  },
+  "files": [
+    "lib"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Capgop/theta-rpc.git"
+  },
+  "scripts": {
+    "build": "npm run clean && npm run compile",
+    "clean": "rm -rf ./lib",
+    "compile": "tsc"
+  },
+  "bugs": {
+    "url": "https://github.com/Capgop/theta-rpc/issues"
+  },
+  "devDependencies": {
+    "typescript": "^3.9.3"
+  }
+}
