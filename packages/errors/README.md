@@ -1,0 +1,1 @@
+# `@theta-rpc/errors`
