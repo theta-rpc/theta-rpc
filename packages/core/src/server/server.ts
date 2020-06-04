@@ -5,10 +5,10 @@ export class JsonRPCServer {
     private logger = new Logger("Server");
     private transport!: ITransport;
 
-    constructor(options: IJsonRPCServerOptions) { }
+    constructor(private options: IJsonRPCServerOptions) { }
 
     public setTransport<T>(transport: { new(...args: any[]): ITransport }, transportOptions: T): this {
-        const transportInstance = new transport(transportOptions);
+        const transportInstance = new transport(this.options, transportOptions);
         this.transport = transportInstance;
         return this;
     }
