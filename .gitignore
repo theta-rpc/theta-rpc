@@ -3,5 +3,7 @@ lib/
 
 .idea/
 
+.projectile
+
 package-lock.json
 lerna-debug.log
