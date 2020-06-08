@@ -10,15 +10,17 @@ export interface IJsonRPCServerOptions {
 
 export interface ITransport {
     readonly name: string;
+    start(): void;
 
-    listen(port: number): void;
+    onStart(listener: () => any): void;
+    onData(listener: (expected: any, data: any) => any ): void;
+    onError(listener: (...args: any[]) => any): void;
+    onStop(listener: () => void): void;
 
-    close(): void;
+    reply(expected: any, data: any): void;
+}
 
-    onListening(listener: () => any): void;
-    onError(listener: (err: Error) => any): void;
-    onClose(listener: () => void): void;
-
-    up(): void;
-    down(): void;
+export interface ITransportGeneralOptions {
+    hostname?: string;
+    port: number
 }

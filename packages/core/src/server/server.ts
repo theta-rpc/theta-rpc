@@ -14,27 +14,23 @@ export class JsonRPCServer {
     }
 
     private registerTransportListeners(): void {
-        this.transport.onListening(() => {
-            this.logger.info('Listening ...');
-        });
-
-        this.transport.onClose(() => {
-            this.logger.warning('Server closed');
+        this.transport.onStart(() => {
+            this.logger.info('Starting..');
         });
 
         this.transport.onError((e: Error) => {
             this.logger.error(e.message);
         });
+
+        this.transport.onStop(() => {
+            this.logger.info('Server stopped');
+        })
     }
 
     public activate(): void {
         this.logger.info('Loaded ' + this.transport.name);
         this.registerTransportListeners();
-        this.transport.up();
-    }
-
-    public kill() {
-        this.transport.down();
+        this.transport.start();
     }
 
 }
