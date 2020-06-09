@@ -9,5 +9,6 @@ export class JsonRPCFactory {
 
     public start() {
         this.logger.info("Starting...");
+        this.options.server.activate();
     }
 }
