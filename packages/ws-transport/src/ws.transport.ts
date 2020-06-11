@@ -40,7 +40,7 @@ export class WsTransport implements ITransport {
     }
 
     public onStop(listener: (...args: any[]) => any): void {
-        this.expressWsDecorator.on('close', listner);
+        this.expressWsDecorator.on('close', listener);
     }
 
     public start(): void {
