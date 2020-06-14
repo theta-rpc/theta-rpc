@@ -12,4 +12,8 @@ export namespace CommonUtils {
     export const getMetadata = (metadataKey: any, target: any): any => {
         return Reflect.getMetadata(metadataKey, target);
     }
+
+    export const buildMethodName = (method: string, namespace?: string): string => {
+        return namespace ? namespace + '.' + method : method;
+    }
 }

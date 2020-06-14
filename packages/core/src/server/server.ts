@@ -1,5 +1,5 @@
 import { IJsonRPCServerOptions, ITransport } from '../interfaces';
-import { Logger } from '@theta-rpc/common';
+import { Logger, Type } from '@theta-rpc/common';
 
 export class JsonRPCServer {
     private logger = new Logger("Server");
@@ -7,7 +7,7 @@ export class JsonRPCServer {
 
     constructor(private options: IJsonRPCServerOptions) { }
 
-    public setTransport<T>(transport: { new(...args: any[]): ITransport }, transportOptions: T): this {
+    public setTransport<T>(transport: Type<ITransport>, transportOptions: T): this {
         const transportInstance = new transport(this.options, transportOptions);
         this.transport = transportInstance;
         return this;
@@ -15,7 +15,7 @@ export class JsonRPCServer {
 
     private registerTransportListeners(): void {
         this.transport.onStart(() => {
-            this.logger.info('Starting..');
+            this.logger.info('Server started');
         });
 
         this.transport.onError((e: Error) => {
@@ -24,7 +24,14 @@ export class JsonRPCServer {
 
         this.transport.onStop(() => {
             this.logger.info('Server stopped');
-        })
+        });
+
+        this.transport.onData(this.processIncomingData.bind(this));
+    }
+
+    public processIncomingData(expected: any, data: any): void {
+        this.logger.warning('Incoming message: ' + data);
+        this.transport.reply(expected, 'reply!');
     }
 
     public activate(): void {

@@ -1,8 +1,9 @@
+import { Type } from '@theta-rpc/common';
 import { JsonRPCServer } from './server';
 
 export interface IJsonRPCFactoryOptions {
     server: JsonRPCServer,
-    procedures: any[]
+    procedures?: Type<any>[]
 }
 
 export interface IJsonRPCServerOptions {
