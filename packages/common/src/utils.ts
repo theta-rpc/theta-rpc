@@ -1,4 +1,5 @@
 import { METADATA_KEY } from './constants';
+import { IJsonRPCErrorObj, IJsonRPCNormalResponse, IJsonRPCErrorResponse } from './interfaces';
 
 export namespace CommonUtils {
     export const isProcedure = (target: any): boolean => {
@@ -15,5 +16,13 @@ export namespace CommonUtils {
 
     export const buildMethodName = (method: string, namespace?: string): string => {
         return namespace ? namespace + '.' + method : method;
+    }
+
+    export const JsonRPCNormalResponseTransform = (result: any, id: number | null): IJsonRPCNormalResponse => {
+        return { jsonrpc: "2.0", result, id };
+    }
+
+    export const JsonRPCErrorResponseTransform = (error: IJsonRPCErrorObj, id: number | null): IJsonRPCErrorResponse => {
+        return { jsonrpc: "2.0", error, id };
     }
 }
