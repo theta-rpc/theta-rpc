@@ -4,5 +4,5 @@ export interface IProcedure {
 
 export interface IMethod {
     name: string,
-    ref: (...args: any[]) => any
+    key: string
 }

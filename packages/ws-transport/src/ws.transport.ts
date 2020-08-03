@@ -1,49 +1,65 @@
-import { ITransport, ITransportGeneralOptions } from '@theta-rpc/core';
+import { EventEmitter } from 'events';
+import http from 'http';
+import ws from 'ws';
+
+import { TransportListeners, ITransport } from '@theta-rpc/core';
 import { IWsTransportOptions } from './interfaces';
 
-import express from 'express';
-import expressws from 'express-ws';
-import cors from 'cors';
+export class WsTransport extends EventEmitter implements ITransport {
+    public readonly name = 'WebSocket transport';
 
-export class WsTransport implements ITransport {
-    public readonly name = 'Ws Transport';
+    private server: http.Server;
+    private wss: ws.Server;
 
-    private expressWsDecorator: expressws.Application;
-    private express: express.Application
+    constructor(private options: IWsTransportOptions) {
+        super();
 
-    constructor(private generalOpts: ITransportGeneralOptions, private transportOpts: IWsTransportOptions) {
-        const expressInstance = express();
-        const { app } = expressws(expressInstance);
+        const server = http.createServer();
+        const wss = new ws.Server({ server, path: options.endpoint });
 
-        if(transportOpts.cors) {
-            app.use(cors(transportOpts.cors));
-        }
-
-        this.expressWsDecorator = app;
-        this.express = expressInstance;
+        this.server = server;
+        this.wss = wss;
     }
 
-    public reply(expected: any, data: any): void {
+    private onListen() {
+        this.wss.on('listening', () => this.emit(TransportListeners.THETA_TRANSPORT_STARTED));
+    }
+
+    private onMessage() {
+        this.wss.on('connection', (socket) => {
+            socket.on('message', (message) => this.emit(TransportListeners.THETA_INCOMING_MESSAGE, socket, message));
+        })
+    }
+
+    private onError() {
+        this.wss.on('error', (error: Error) => this.emit(TransportListeners.THETA_TRANSPORT_ERROR, error));
+    }
+
+    private onClose() {
+        this.server.on('close', () => { this.emit(TransportListeners.THETA_TRANSPORT_STOPPED) })
+
+    }
+
+    private registerEmitters() {
+        this.onListen();
+        this.onMessage();
+        this.onError();
+        this.onClose();
+    }
+
+    public reply(expected: any, data: any) {
         expected.send(data);
     }
 
-    public onData(listener: (expected: any, data: any) => any): void {
-        this.expressWsDecorator.ws(this.transportOpts.endpoint || '/', (ws) => ws.on('message', (data) => listener(ws, data)));
+    public start() {
+        const { options } = this;
+
+        this.registerEmitters();
+
+        this.server.listen(options.port, options.hostname);
     }
 
-    public onError(listener: (...args: any[]) => any): void {
-        this.expressWsDecorator.on('error', listener);
-    }
-
-    public onStart(listener: (...args: any[]) => any): void {
-        this.expressWsDecorator.on('listening', listener);
-    }
-
-    public onStop(listener: (...args: any[]) => any): void {
-        this.expressWsDecorator.on('close', listener);
-    }
-
-    public start(): void {
-        this.expressWsDecorator.listen(this.generalOpts.port, this.generalOpts.hostname || '127.0.0.1', () => this.expressWsDecorator.emit('listening'));
+    public stop() {
+        this.server.close();
     }
 }

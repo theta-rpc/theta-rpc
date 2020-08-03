@@ -21,7 +21,7 @@
     "build": "npm run clean && npm run compile",
     "clean": "rm -rf ./lib",
     "compile": "tsc",
-    "test": "jest --config ../../jest.config.js"
+    "test": "jest --config ../../jest.config.js --rootDir ."
   },
   "bugs": {
     "url": "https://github.com/Capgop/theta-rpc/issues"

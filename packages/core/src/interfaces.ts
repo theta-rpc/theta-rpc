@@ -1,29 +1,44 @@
-import { Type } from '@theta-rpc/common';
-import { JsonRPCServer } from './server';
+import { ClassType } from '@theta-rpc/common';
+import { EventEmitter } from "events";
 
-export interface IJsonRPCFactoryOptions {
-    server: JsonRPCServer,
-    procedures?: Type<any>[]
+export interface IMethodMetadata {
+    handler: (...args: any[]) => any
 }
 
-export interface IJsonRPCServerOptions {
-    hostname?: string,
-    port: number
-}
-
-export interface ITransport {
-    readonly name: string;
-    start(): void;
-
-    onStart(listener: () => any): void;
-    onData(listener: (expected: any, data: any) => any ): void;
-    onError(listener: (...args: any[]) => any): void;
-    onStop(listener: () => void): void;
+export interface ITransport extends EventEmitter {
+    readonly name: string,
 
     reply(expected: any, data: any): void;
+    start(): void;
+    stop(): void;
 }
 
-export interface ITransportGeneralOptions {
-    hostname?: string;
-    port: number
+export interface IServerOptions<ITransportOptions> {
+    transport: ClassType<any>,
+    transportOptions: ITransportOptions
+}
+
+export interface IContext<TParams = any> {
+    id: number | null
+    method: string,
+    params: TParams,
+    inBatchScope: boolean,
+    isNotification: boolean,
+    rpcBody: IConcreteJsonRPCObj
+}
+
+export interface IThetaRPCFactoryOptions<TransportOptions> {
+    server: IServerOptions<TransportOptions>,
+    procedures?: ClassType<unknown>[]
+}
+
+export interface IProbableJsonRPCObj {
+    [key: string]: any
+}
+
+export interface IConcreteJsonRPCObj {
+    jsonrpc: string;
+    method: string;
+    params?: any;
+    id?: any
 }

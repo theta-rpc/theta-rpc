@@ -21,23 +21,19 @@
     "build": "npm run clean && npm run compile",
     "clean": "rm -rf ./lib",
     "compile": "tsc",
-    "test": "jest --config ../../jest.config.js"
+    "test": "jest --config ../../jest.config.js --rootDir ."
   },
   "bugs": {
     "url": "https://github.com/Capgop/theta-rpc/issues"
   },
   "devDependencies": {
-    "@types/cors": "^2.8.6",
-    "@types/express": "^4.17.6",
-    "@types/express-ws": "^3.0.0",
     "@types/node": "^14.0.6",
+    "@types/ws": "^7.2.6",
     "typescript": "^3.9.3"
   },
   "dependencies": {
     "@theta-rpc/core": "^0.0.0",
-    "cors": "^2.8.5",
-    "express": "^4.17.1",
-    "express-ws": "^4.0.0",
-    "reflect-metadata": "^0.1.13"
+    "reflect-metadata": "^0.1.13",
+    "ws": "^7.3.1"
   }
 }

@@ -1,7 +1,7 @@
-import { METADATA_KEY } from "../constants";
+import { metadata_key } from "../constants";
 
 export function Procedure(namespace?: string): ClassDecorator {
     return (target: any) => {
-        Reflect.defineMetadata(METADATA_KEY.procedure, { target, namespace }, target);
+        Reflect.defineMetadata(metadata_key.procedure, { target, namespace }, target);
     }
 }

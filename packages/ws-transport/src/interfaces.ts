@@ -1,6 +1,5 @@
-import { CorsOptions } from 'cors';
-
 export interface IWsTransportOptions {
-    endpoint?: string,
-    cors?: CorsOptions
+    hostname?: string,
+    port: number,
+    endpoint?: string
 }

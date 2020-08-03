@@ -1,6 +1,6 @@
 
-export interface Type<T> {
-    new(...args: any[]): T
+export type ClassType<T> = {
+    new(...args: any[]): T;
 }
 
 export interface IJsonRPCErrorObj {
@@ -9,7 +9,7 @@ export interface IJsonRPCErrorObj {
     data?: string
 }
 
-export interface IJsonRPCNormalResponse {
+export interface IJsonRPCSuccessResponse {
     jsonrpc: string,
     result: any,
     id: number | null

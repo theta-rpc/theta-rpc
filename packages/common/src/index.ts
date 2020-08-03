@@ -6,4 +6,7 @@ export * from './logger';
 
 export * from './utils';
 export * from './constants';
-export * from './interfaces';
+
+export {
+    ClassType
+} from './interfaces';
