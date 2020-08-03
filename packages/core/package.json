@@ -1,6 +1,6 @@
 {
   "name": "@theta-rpc/core",
-  "version": "0.0.0",
+  "version": "1.0.0",
   "description": "JSON-RPC 2.0 server for nodejs, written in typescript",
   "author": "Capgop <capgop0@gmail.com>",
   "homepage": "https://github.com/Capgop/theta-rpc#readme",
@@ -31,8 +31,8 @@
     "typescript": "^3.9.3"
   },
   "dependencies": {
-    "@theta-rpc/common": "^0.0.0",
-    "@theta-rpc/errors": "^0.0.0",
+    "@theta-rpc/common": "^1.0.0",
+    "@theta-rpc/errors": "^1.0.0",
     "reflect-metadata": "^0.1.13"
   }
 }
