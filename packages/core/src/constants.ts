@@ -1,0 +1,6 @@
+export namespace TransportListeners {
+    export const THETA_TRANSPORT_STARTED = 'THETA_TRANSPORT_STARTED';
+    export const THETA_INCOMING_MESSAGE = 'THETA_INCOMING_MESSAGE';
+    export const THETA_TRANSPORT_STOPPED = 'THETA_TRANSPORT_STOPPED';
+    export const THETA_TRANSPORT_ERROR = 'THETA_TRANSPORT_ERROR';
+}

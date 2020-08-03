@@ -7,6 +7,10 @@
   },
   "license": "MIT",
   "devDependencies": {
-    "lerna": "^3.22.0"
+    "@types/jest": "^25.2.3",
+    "jest": "^26.0.1",
+    "lerna": "^3.22.0",
+    "ts-jest": "^26.1.0",
+    "typescript": "^3.9.3"
   }
 }
