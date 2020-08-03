@@ -17,6 +17,9 @@
     "type": "git",
     "url": "git+https://github.com/Capgop/theta-rpc.git"
   },
+  "publishConfig": {
+    "access": "public"
+  },
   "scripts": {
     "build": "npm run clean && npm run compile",
     "clean": "rm -rf ./lib",
@@ -34,5 +37,6 @@
     "@theta-rpc/common": "^1.0.0",
     "@theta-rpc/errors": "^1.0.0",
     "reflect-metadata": "^0.1.13"
-  }
+  },
+  "gitHead": "a7ca49ab15e77f4121c1b506fd44351b2da3c9b2"
 }

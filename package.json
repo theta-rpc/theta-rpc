@@ -5,6 +5,9 @@
     "email": "capgop0@gmail.com",
     "name": "Capgop"
   },
+  "publishConfig": {
+    "access": "public"
+  },
   "license": "MIT",
   "devDependencies": {
     "@types/jest": "^25.2.3",
