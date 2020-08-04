@@ -8,7 +8,7 @@ export const bodyCollectorMiddleware = (req: Request, res: Response, next: NextF
     if (UPPER_CASE_HEADER === 'POST' && CONTENT_TYPE === ALLOWED_CONTENT_TYPE) {
         let buffer = Buffer.from([]);
 
-        req.on('data', (chunk) => {
+        req.on('data', (chunk: any) => {
             buffer = Buffer.concat([buffer, chunk]);
         });
 
