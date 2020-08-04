@@ -3,6 +3,7 @@ import { EventEmitter } from 'events';
 
 import express from 'express';
 import http from 'http';
+import cors from 'cors';
 import { bodyCollectorMiddleware } from './middlewares';
 
 import { IHttpTransportOptions } from './interfaces';
@@ -26,6 +27,10 @@ export class HttpTransport extends EventEmitter implements ITransport {
     }
 
     private useFirstLayerMiddlewares() {
+        if(this.options.cors) {
+            this.expressDecorator.use(cors(this.options.cors));
+        }
+
         this.expressDecorator.use(bodyCollectorMiddleware);
     }
 
