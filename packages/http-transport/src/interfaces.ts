@@ -1,6 +1,8 @@
+import { CorsOptions } from 'cors';
 
 export interface IHttpTransportOptions {
     hostname?: string;
     port: number;
-    endpoint?: string
+    endpoint?: string;
+    cors?: CorsOptions
 }
