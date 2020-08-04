@@ -1,6 +1,6 @@
 {
   "name": "theta-rpc",
-  "description": "JSON-RPC 2.0 server for nodejs, written in typescript",
+  "description": "JSON-RPC 2.0 Server and Client library for Node.js",
   "author": {
     "email": "capgop0@gmail.com",
     "name": "Capgop"

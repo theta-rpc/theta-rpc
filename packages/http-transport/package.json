@@ -1,7 +1,7 @@
 {
   "name": "@theta-rpc/http-transport",
   "version": "1.1.1",
-  "description": "JSON-RPC 2.0 server for nodejs, written in typescript",
+  "description": "JSON-RPC 2.0 Server and Client library for Node.js",
   "author": "Capgop <capgop0@gmail.com>",
   "homepage": "https://github.com/Capgop/theta-rpc#readme",
   "license": "MIT",
@@ -26,6 +26,18 @@
     "compile": "tsc",
     "test": "jest --config ../../jest.config.js --rootDir ."
   },
+  "keywords": [
+    "theta-rpc",
+    "json-rpc",
+    "transport",
+    "multiple transport",
+    "rpc",
+    "ws",
+    "http",
+    "json",
+    "server",
+    "client"
+  ],
   "bugs": {
     "url": "https://github.com/Capgop/theta-rpc/issues"
   },
