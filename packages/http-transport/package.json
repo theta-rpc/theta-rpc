@@ -1,6 +1,6 @@
 {
   "name": "@theta-rpc/http-transport",
-  "version": "1.1.1",
+  "version": "1.2.0",
   "description": "JSON-RPC 2.0 Server and Client library for Node.js",
   "author": "Capgop <capgop0@gmail.com>",
   "homepage": "https://github.com/Capgop/theta-rpc#readme",
@@ -48,7 +48,7 @@
     "typescript": "^3.9.3"
   },
   "dependencies": {
-    "@theta-rpc/core": "^1.1.1",
+    "@theta-rpc/core": "^1.2.0",
     "cors": "^2.8.5",
     "express": "^4.17.1",
     "reflect-metadata": "^0.1.13"
