@@ -1,6 +1,6 @@
 {
   "name": "@theta-rpc/common",
-  "version": "1.0.1",
+  "version": "1.1.0",
   "description": "JSON-RPC 2.0 server for nodejs, written in typescript",
   "author": "Capgop <capgop0@gmail.com>",
   "homepage": "https://github.com/Capgop/theta-rpc#readme",
