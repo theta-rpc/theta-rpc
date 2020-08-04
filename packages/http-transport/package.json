@@ -1,0 +1,42 @@
+{
+  "name": "@theta-rpc/http-transport",
+  "version": "1.0.1",
+  "description": "JSON-RPC 2.0 server for nodejs, written in typescript",
+  "author": "Capgop <capgop0@gmail.com>",
+  "homepage": "https://github.com/Capgop/theta-rpc#readme",
+  "license": "MIT",
+  "main": "lib/index.js",
+  "types": "lib/index.d.ts",
+  "directories": {
+    "lib": "lib"
+  },
+  "files": [
+    "lib"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Capgop/theta-rpc.git"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "scripts": {
+    "build": "npm run clean && npm run compile",
+    "clean": "rm -rf ./lib",
+    "compile": "tsc",
+    "test": "jest --config ../../jest.config.js --rootDir ."
+  },
+  "bugs": {
+    "url": "https://github.com/Capgop/theta-rpc/issues"
+  },
+  "devDependencies": {
+    "@types/express": "^4.17.7",
+    "@types/node": "^14.0.6",
+    "typescript": "^3.9.3"
+  },
+  "dependencies": {
+    "@theta-rpc/core": "^1.0.1",
+    "express": "^4.17.1",
+    "reflect-metadata": "^0.1.13"
+  }
+}
