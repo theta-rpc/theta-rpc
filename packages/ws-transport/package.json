@@ -1,6 +1,6 @@
 {
   "name": "@theta-rpc/ws-transport",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "JSON-RPC 2.0 server for nodejs, written in typescript",
   "author": "Capgop <capgop0@gmail.com>",
   "homepage": "https://github.com/Capgop/theta-rpc#readme",
@@ -35,7 +35,7 @@
     "typescript": "^3.9.3"
   },
   "dependencies": {
-    "@theta-rpc/core": "^1.0.0",
+    "@theta-rpc/core": "^1.0.1",
     "reflect-metadata": "^0.1.13",
     "ws": "^7.3.1"
   },
