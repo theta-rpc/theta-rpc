@@ -1,9 +1,0 @@
-node_modules/
-
-dist/
-
-.idea/
-.projectile
-
-package-lock.json
-lerna-debug.log
