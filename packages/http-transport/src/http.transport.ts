@@ -21,6 +21,9 @@ export class HttpTransport extends EventEmitter implements ITransport {
 
         const decorator = express();
         const server = http.createServer(decorator);
+        
+        // disable x-powered-by header
+        decorator.disable('x-powered-by');
 
         this.expressDecorator = decorator;
         this.server = server;
@@ -59,7 +62,14 @@ export class HttpTransport extends EventEmitter implements ITransport {
         this.onClose();
     }
 
-    public reply(expected: any, data: any) {
+    public reply(expected: express.Response, data: string) {
+        // empty response ?
+        if(data === '') {
+          expected.status(204);
+        }
+
+        expected.header('Content-Type', 'application/json');
+
         expected.send(data);
     }
 
