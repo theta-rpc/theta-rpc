@@ -2,5 +2,10 @@
   "packages": [
     "packages/*"
   ],
+  "command": {
+    "version": {
+      "message": "chore(@theta-rpc): publish %s"
+    }
+  },
   "version": "1.1.1"
 }

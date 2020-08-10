@@ -22,9 +22,9 @@
   },
   "scripts": {
     "build": "npm run clean && npm run compile",
-    "clean": "rm -rf ./lib",
+    "clean": "rimraf lib/",
     "compile": "tsc",
-    "test": "jest --config ../../jest.config.js --rootDir ."
+    "test": "jest --config ../../jest.config.js --rootDir . --passWithNoTests"
   },
   "keywords": [
     "theta-rpc",
