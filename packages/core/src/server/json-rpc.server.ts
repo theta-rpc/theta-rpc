@@ -31,7 +31,7 @@ export class JsonRPCServer<TransportOptions> {
         const { transport, transportOptions } = options;
 
         const transportInstance = new transport(transportOptions);
-
+        this.logger.info(`Loaded ${transportInstance.name}`);
         this.transport = transportInstance;
     }
 
