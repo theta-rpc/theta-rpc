@@ -46,12 +46,19 @@ export class MethodsExplorer {
             for(let method of decoratedMethods) {
 
                 const methodMetadata = utils.getMetadata(metadata_key.method, method) as IMethod;
+                
+                if(methodMetadata.name.length === 0) {
+                  this._logger.warning(`Empty method name in "${procedure.name}" [skipped]`);
+                  continue;
+                }
+                
                 const methodName = utils.buildMethodName(methodMetadata.name, classMetadata.namespace);
 
                 if(!this._container.exists(methodName)) {
 
                     this._container.add(methodName, { handler: instance[methodMetadata.key].bind(instance) });
                     this._logger.info(methodName);
+                
                 } else {
                     this._logger.warning(`${methodName} is already registered`);
                 }
