@@ -1,16 +1,7 @@
 import { ClassType } from '@theta-rpc/common';
-import { EventEmitter } from "events";
 
 export interface IMethodMetadata {
     handler: (...args: any[]) => any
-}
-
-export interface ITransport extends EventEmitter {
-    readonly name: string,
-
-    reply(expected: any, data: any): void;
-    start(): void;
-    stop(): void;
 }
 
 export interface IServerOptions<ITransportOptions> {

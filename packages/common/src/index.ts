@@ -8,5 +8,6 @@ export * from './utils';
 export * from './constants';
 
 export {
-    ClassType
+    ClassType,
+    ITransport
 } from './interfaces';

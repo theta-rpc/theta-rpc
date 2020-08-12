@@ -1,4 +1,4 @@
-import { Logger, utils, metadata_key, IProcedure, IMethod, ClassType } from '@theta-rpc/common';
+import { Logger, utils, CONSTANTS, IProcedure, IMethod, ClassType } from '@theta-rpc/common';
 import { MethodsContainer } from './methods.container';
 
 export class MethodsExplorer {
@@ -40,18 +40,25 @@ export class MethodsExplorer {
         const decoratedProcedures = this.decoratedClasses(procedures);
 
         for(let procedure of decoratedProcedures) {
-            const classMetadata = utils.getMetadata(metadata_key.procedure, procedure) as IProcedure;
+            const classMetadata = utils.getMetadata(CONSTANTS.PROCEDURE, procedure) as IProcedure;
             const [instance, decoratedMethods] = this.decoratedMethods(procedure);
 
             for(let method of decoratedMethods) {
 
-                const methodMetadata = utils.getMetadata(metadata_key.method, method) as IMethod;
+                const methodMetadata = utils.getMetadata(CONSTANTS.METHOD, method) as IMethod;
+                
+                if(methodMetadata.name.length === 0) {
+                  this._logger.warning(`Empty method name in "${procedure.name}" [skipped]`);
+                  continue;
+                }
+                
                 const methodName = utils.buildMethodName(methodMetadata.name, classMetadata.namespace);
 
                 if(!this._container.exists(methodName)) {
 
                     this._container.add(methodName, { handler: instance[methodMetadata.key].bind(instance) });
                     this._logger.info(methodName);
+                
                 } else {
                     this._logger.warning(`${methodName} is already registered`);
                 }

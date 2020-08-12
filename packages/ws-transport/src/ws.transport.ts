@@ -1,65 +1,87 @@
+import { CONSTANTS, ITransport } from '@theta-rpc/common';
+
 import { EventEmitter } from 'events';
 import http from 'http';
 import ws from 'ws';
 
-import { TransportListeners, ITransport } from '@theta-rpc/core';
 import { IWsTransportOptions } from './interfaces';
 
 export class WsTransport extends EventEmitter implements ITransport {
-    public readonly name = 'WebSocket transport';
+  public readonly name = 'WebSocket transport';
 
-    private server: http.Server;
-    private wss: ws.Server;
+  private httpServer: http.Server;
+  private ws: ws.Server;
 
-    constructor(private options: IWsTransportOptions) {
-        super();
+  private defaultEndpoint = '/';
+  private defaultHostname = '127.0.0.1';
 
-        const server = http.createServer();
-        const wss = new ws.Server({ server, path: options.endpoint });
+  constructor(private options: IWsTransportOptions) {
+    super();
 
-        this.server = server;
-        this.wss = wss;
-    }
+    const httpServer = http.createServer();
+    const websocket = new ws.Server({ server: httpServer, path: options.endpoint || this.defaultEndpoint });
 
-    private onListen() {
-        this.wss.on('listening', () => this.emit(TransportListeners.THETA_TRANSPORT_STARTED));
-    }
+    this.httpServer = httpServer;
+    this.ws = websocket;
 
-    private onMessage() {
-        this.wss.on('connection', (socket) => {
-            socket.on('message', (message) => this.emit(TransportListeners.THETA_INCOMING_MESSAGE, socket, message));
-        })
-    }
+    this.registerListeners();
+    this.registerEmitters();
+  }
 
-    private onError() {
-        this.wss.on('error', (error: Error) => this.emit(TransportListeners.THETA_TRANSPORT_ERROR, error));
-    }
+  private startedEmitter() {
+    this.ws.on('listening', () => this.emit(CONSTANTS.THETA_TRANSPORT_STARTED));
+  }
 
-    private onClose() {
-        this.server.on('close', () => { this.emit(TransportListeners.THETA_TRANSPORT_STOPPED) })
+  private errorEmitter() {
+    this.ws.on('error', (error: Error) => this.emit(CONSTANTS.THETA_TRANSPORT_ERROR, error));
+  }
 
-    }
+  private incomingMessageEmitter() {
+    this.ws.on('connection', (socket) => {
+      socket.on('message', (data) => this.emit(CONSTANTS.THETA_TRANSPORT_INCOMING_MESSAGE, socket, data));
+    });
+  }
 
-    private registerEmitters() {
-        this.onListen();
-        this.onMessage();
-        this.onError();
-        this.onClose();
-    }
+  private stoppedEmitter() {
+    this.httpServer.on('close', () => this.emit(CONSTANTS.THETA_TRANSPORT_STOPPED));
+  }
 
-    public reply(expected: any, data: any) {
-        expected.send(data);
-    }
+  private registerEmitters() {
+    this.startedEmitter();
+    this.errorEmitter();
+    this.incomingMessageEmitter();
+    this.stoppedEmitter();
+  }
 
-    public start() {
-        const { options } = this;
+  private startListener() {
+    this.on(CONSTANTS.THETA_TRANSPORT_START, () => this.start());
+  }
 
-        this.registerEmitters();
+  private replyListener() {
+    this.on(CONSTANTS.THETA_TRANSPORT_REPLY, (expected: any, data: string) => this.reply(expected, data));
+  }
 
-        this.server.listen(options.port, options.hostname);
-    }
+  private stopListener() {
+    this.on(CONSTANTS.THETA_TRANSPORT_STOP, () => this.stop());
+  }
 
-    public stop() {
-        this.server.close();
-    }
+  private registerListeners() {
+    this.startListener();
+    this.replyListener();
+    this.stopListener();
+  }
+
+  private start() {
+    const { options } = this;
+
+    this.httpServer.listen(options.port, options.hostname || this.defaultHostname);
+  }
+
+  private reply(expected: any, data: string) {
+    expected.send(data);
+  }
+
+  private stop() {
+    this.httpServer.close();
+  }
 }

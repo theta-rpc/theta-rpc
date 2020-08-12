@@ -1,9 +1,4 @@
-export {
-    ITransport,
-    IContext
-} from './interfaces';
-
-export * from './constants';
+export { IContext } from './interfaces';
 
 export * from './server';
 export * from './theta-rpc.factory';

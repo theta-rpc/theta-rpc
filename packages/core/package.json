@@ -1,9 +1,9 @@
 {
   "name": "@theta-rpc/core",
-  "version": "1.2.0",
+  "version": "1.2.2",
   "description": "JSON-RPC 2.0 Server and Client library for Node.js",
   "author": "Capgop <capgop0@gmail.com>",
-  "homepage": "https://github.com/Capgop/theta-rpc#readme",
+  "homepage": "https://github.com/theta-rpc/theta-rpc#readme",
   "license": "MIT",
   "main": "lib/index.js",
   "types": "lib/index.d.ts",
@@ -15,16 +15,16 @@
   ],
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/Capgop/theta-rpc.git"
+    "url": "git+https://github.com/theta-rpc/theta-rpc.git"
   },
   "publishConfig": {
     "access": "public"
   },
   "scripts": {
     "build": "npm run clean && npm run compile",
-    "clean": "rm -rf ./lib",
+    "clean": "rimraf lib/",
     "compile": "tsc",
-    "test": "jest --config ../../jest.config.js --rootDir ."
+    "test": "jest --config ../../jest.config.js --rootDir . --passWithNoTests"
   },
   "keywords": [
     "theta-rpc",
@@ -39,15 +39,15 @@
     "client"
   ],
   "bugs": {
-    "url": "https://github.com/Capgop/theta-rpc/issues"
+    "url": "https://github.com/theta-rpc/theta-rpc/issues"
   },
   "devDependencies": {
     "@types/node": "^14.0.6",
     "typescript": "^3.9.3"
   },
   "dependencies": {
-    "@theta-rpc/common": "^1.2.0",
-    "@theta-rpc/errors": "^1.2.0",
+    "@theta-rpc/common": "^1.2.2",
+    "@theta-rpc/errors": "^1.2.2",
     "reflect-metadata": "^0.1.13"
   },
   "gitHead": "a7ca49ab15e77f4121c1b506fd44351b2da3c9b2"
