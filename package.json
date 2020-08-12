@@ -13,7 +13,7 @@
     "version": "lerna version --force-publish",
     "clean": "lerna clean --yes && lerna run clean",
     "build": "lerna run clean && lerna run build",
-    "publish": "lerna run publish",
+    "publish": "lerna publish",
     "publish:github": "lerna publish --skip-npm",
     "publish:npm": "lerna publish --no-git-tag-version --no-push"
   },
