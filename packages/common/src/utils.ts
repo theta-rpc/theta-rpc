@@ -1,4 +1,4 @@
-import { metadata_key } from './constants';
+import { CONSTANTS } from './constants';
 import {
     IJsonRPCErrorObj,
     IJsonRPCSuccessResponse,
@@ -7,11 +7,11 @@ import {
 
 export namespace utils {
     export const isProcedure = (target: any): boolean => {
-        return Reflect.hasMetadata(metadata_key.procedure, target);
+        return Reflect.hasMetadata(CONSTANTS.PROCEDURE, target);
     }
 
     export const isMethod = (target: any): boolean => {
-        return Reflect.hasMetadata(metadata_key.method, target);
+        return Reflect.hasMetadata(CONSTANTS.METHOD, target);
     }
 
     export const getMetadata = (metadataKey: any, target: any): any => {

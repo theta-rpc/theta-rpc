@@ -1,4 +1,4 @@
-import { Logger, utils } from '@theta-rpc/common';
+import { Logger, utils, CONSTANTS, ITransport } from '@theta-rpc/common';
 import {
     MethodNotfoundError,
     JsonRPCError,
@@ -10,12 +10,10 @@ import {
 import {
     IServerOptions,
     IConcreteJsonRPCObj,
-    ITransport,
     IProbableJsonRPCObj
 } from '../interfaces';
 
 import { MethodsContainer } from '../method/methods.container';
-import { TransportListeners } from '../constants';
 import { JsonRPCValidator } from '../json-rpc.validator';
 import { Context } from '../context';
 
@@ -36,24 +34,24 @@ export class JsonRPCServer<TransportOptions> {
     }
 
     private transportOnStart() {
-        this.transport.on(TransportListeners.THETA_TRANSPORT_STARTED, () => {
+        this.transport.on(CONSTANTS.THETA_TRANSPORT_STARTED, () => {
             this.logger.info('Started');
         });
     }
 
     private transportOnIncomingMessage() {
-        this.transport.on(TransportListeners.THETA_INCOMING_MESSAGE, this.processIncomingMessage.bind(this));
+        this.transport.on(CONSTANTS.THETA_TRANSPORT_INCOMING_MESSAGE, (expected: any, data: string) => this.processIncomingMessage(expected, data));
     }
 
     private transportOnError() {
-        this.transport.on(TransportListeners.THETA_TRANSPORT_ERROR, (error: Error) => {
+        this.transport.on(CONSTANTS.THETA_TRANSPORT_ERROR, (error: Error) => {
             this.logger.error(error.message);
             process.exit(1);
         });
     }
 
     private transportOnStop() {
-        this.transport.on(TransportListeners.THETA_TRANSPORT_STOPPED, () => {
+        this.transport.on(CONSTANTS.THETA_TRANSPORT_STOPPED, () => {
             this.logger.warning('Stopped');
         });
     }
@@ -66,17 +64,17 @@ export class JsonRPCServer<TransportOptions> {
     }
 
     private startTransport() {
-        this.transport.start();
+      this.transport.emit(CONSTANTS.THETA_TRANSPORT_START);
     }
 
     private stopTransport() {
-        this.transport.stop();
+      this.transport.emit(CONSTANTS.THETA_TRANSPORT_STOP);
     }
 
     private reply(expected: any, data: any) {
         const sanitizedResponse = utils.sanitizeResponse(data, false);
 
-        this.transport.reply(expected, sanitizedResponse ? utils.stringify(sanitizedResponse) : '')
+        this.transport.emit(CONSTANTS.THETA_TRANSPORT_REPLY, expected, sanitizedResponse ? utils.stringify(sanitizedResponse) : '')
     }
 
     private async processIncomingMessage(expected: any, data: any) {

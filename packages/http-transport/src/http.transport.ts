@@ -1,4 +1,4 @@
-import { TransportListeners, ITransport } from '@theta-rpc/core';
+import { CONSTANTS, ITransport } from '@theta-rpc/common';
 import { EventEmitter } from 'events';
 
 import express from 'express';
@@ -9,9 +9,10 @@ import { bodyCollectorMiddleware } from './middlewares';
 import { IHttpTransportOptions } from './interfaces';
 
 export class HttpTransport extends EventEmitter implements ITransport {
-    public readonly name = 'Http transport';
+    public readonly name = 'HTTP transport';
+
     private server: http.Server;
-    private expressDecorator: express.Application;
+    private httpDecorator: express.Application;
 
     private defaultEndpoint = '/';
     private defaultHostname = '127.0.0.1';
@@ -21,66 +22,85 @@ export class HttpTransport extends EventEmitter implements ITransport {
 
         const decorator = express();
         const server = http.createServer(decorator);
-        
+
         // disable x-powered-by header
         decorator.disable('x-powered-by');
 
-        this.expressDecorator = decorator;
         this.server = server;
+        this.httpDecorator = decorator;
+
+        this.useFirstLayerMiddlewares();
+        this.registerListeners();
+        this.registerEmitters();
     }
 
     private useFirstLayerMiddlewares() {
-        if(this.options.cors) {
-            this.expressDecorator.use(cors(this.options.cors));
+        if (this.options.cors) {
+            this.httpDecorator.use(cors(this.options.cors));
         }
 
-        this.expressDecorator.use(bodyCollectorMiddleware);
+        this.httpDecorator.use(bodyCollectorMiddleware);
     }
 
-    private onListen() {
-        this.server.on('listening', () => this.emit(TransportListeners.THETA_TRANSPORT_STARTED));
+    private startedEmitter() {
+        this.server.on('listening', () => this.emit(CONSTANTS.THETA_TRANSPORT_STARTED));
     }
 
-    private onMessage() {
-        this.expressDecorator.post(this.options.endpoint || this.defaultEndpoint, (req, res) => {
-            this.emit(TransportListeners.THETA_INCOMING_MESSAGE, res, req.body);
+    private errorEmitter() {
+        this.server.on('error', (error: Error) => this.emit(CONSTANTS.THETA_TRANSPORT_ERROR, error));
+    }
+
+    private incomingMessageEmitter() {
+        this.httpDecorator.post(this.options.endpoint || this.defaultEndpoint, (req: express.Request, res: express.Response) => {
+            this.emit(CONSTANTS.THETA_TRANSPORT_INCOMING_MESSAGE, res, req.body);
         });
     }
 
-    private onError() {
-        this.server.on('error', (err) => this.emit(TransportListeners.THETA_TRANSPORT_ERROR, err));
-    }
-
-    private onClose() {
-        this.server.on('close', () => this.emit(TransportListeners.THETA_TRANSPORT_STOPPED));
+    private stoppedEmitter() {
+        this.server.on('close', () => this.emit(CONSTANTS.THETA_TRANSPORT_STOPPED));
     }
 
     private registerEmitters() {
-        this.onListen();
-        this.onMessage();
-        this.onError();
-        this.onClose();
+        this.startedEmitter();
+        this.errorEmitter();
+        this.incomingMessageEmitter();
+        this.stoppedEmitter();
     }
 
-    public reply(expected: express.Response, data: string) {
-        // empty response ?
-        if(data === '') {
-          expected.status(204);
+    private startListener() {
+        this.on(CONSTANTS.THETA_TRANSPORT_START, () => this.start())
+    }
+
+    private replyListener() {
+        this.on(CONSTANTS.THETA_TRANSPORT_REPLY, (expected: express.Response, data: string) => this.reply(expected, data));
+    }
+
+    private stopListener() {
+        this.on(CONSTANTS.THETA_TRANSPORT_STOP, () => this.stop());
+    }
+
+    private registerListeners() {
+        this.startListener();
+        this.replyListener();
+        this.stopListener();
+    }
+
+    private start() {
+        const { options } = this;
+        this.server.listen(options.port, options.hostname || this.defaultHostname);
+    }
+
+    private reply(expected: express.Response, data: string) {
+        if (data.length === 0) {
+            expected.status(204);
         }
 
-        expected.header('Content-Type', 'application/json');
+        expected.set('Content-Type', 'application/json');
 
         expected.send(data);
     }
 
-    public start() {
-        const { options } = this;
-        this.useFirstLayerMiddlewares();
-        this.registerEmitters();
-        this.server.listen(options.port, options.hostname || this.defaultHostname);
-    }
-
-    public stop() {
+    private stop() {
         this.server.close();
     }
 }

@@ -9,8 +9,6 @@ class StaticThetaRPCFactory {
     private _logger = new Logger('Factory');
 
     public create<TTransportOptions>(options: IThetaRPCFactoryOptions<TTransportOptions>): JsonRPCServer<TTransportOptions> {
-        this._logger.info('Starting...');
-
         const { server, procedures } = options;
 
         const methodsContainer = new MethodsContainer();

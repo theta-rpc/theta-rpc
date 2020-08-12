@@ -1,6 +1,11 @@
+import { EventEmitter } from 'events';
 
 export type ClassType<T> = {
     new(...args: any[]): T;
+}
+
+export interface ITransport extends EventEmitter {
+  readonly name: string
 }
 
 export interface IJsonRPCErrorObj {

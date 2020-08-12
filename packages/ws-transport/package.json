@@ -47,7 +47,7 @@
     "typescript": "^3.9.3"
   },
   "dependencies": {
-    "@theta-rpc/core": "^1.1.1",
+    "@theta-rpc/common": "^1.1.1",
     "reflect-metadata": "^0.1.13",
     "ws": "^7.3.1"
   },
