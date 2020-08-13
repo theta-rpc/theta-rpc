@@ -3,7 +3,7 @@
     <br>
     <img src="https://img.shields.io/github/license/Capgop/theta-rpc">
     <img src="https://img.shields.io/npm/v/@theta-rpc/core">
-    <img src="https://api.travis-ci.com/Capgop/theta-rpc.svg?branch=master">
+    <img src="https://github.com/4h7l/gh/workflows/CI/badge.svg">
 </p>
 
 ## Installation
@@ -46,7 +46,7 @@ ThetaRPCFactory.create<IHttpTransportOptions>({
 });
 
 ```
-You can see other samples in the **samples** folder
+You can see other samples in the **[samples](https://github.com/theta-rpc/samples)** repository
 
 ## Dependencies
 
