@@ -1,11 +1,9 @@
-import 'reflect-metadata';
+export * from './types';
 
-export * from './interfaces';
-
-
-export * from './json-rpc.error';
-export * from './internal.error';
-export * from './invalid-params.error';
-export * from './invalid-request.error';
-export * from './method-not-found.error';
-export * from './parse.error';
+export * from './json-rpc.exception';
+export * from './internal-error.exception';
+export * from './invalid-params.exception';
+export * from './invalid-request.exception';
+export * from './method-not-found.exception';
+export * from './parse-error.exception';
+export * from './no-access-to-method.exception';
