@@ -45,9 +45,6 @@
     "@types/node": "^14.0.6",
     "typescript": "^3.9.3"
   },
-  "dependencies": {
-    "@theta-rpc/common": "^1.2.2",
-    "reflect-metadata": "^0.1.13"
-  },
+  "dependencies": {},
   "gitHead": "a7ca49ab15e77f4121c1b506fd44351b2da3c9b2"
 }
