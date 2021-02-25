@@ -1,5 +1,5 @@
 export type ExceptionOptionsType = {
-    code: number,
-    message: string,
-    data?: any
+  code: number,
+  message: string,
+  data?: any
 }
