@@ -1,0 +1,50 @@
+{
+  "name": "@theta-rpc/json-rpc",
+  "version": "1.2.2",
+  "description": "JSON-RPC 2.0 Server and Client library for Node.js",
+  "author": "Capgop <capgop0@gmail.com>",
+  "homepage": "https://github.com/theta-rpc/theta-rpc#readme",
+  "license": "MIT",
+  "main": "lib/index.js",
+  "types": "lib/index.d.ts",
+  "directories": {
+    "lib": "lib"
+  },
+  "files": [
+    "lib"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/theta-rpc/theta-rpc.git"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "scripts": {
+    "build": "npm run clean && npm run compile",
+    "clean": "rimraf lib/",
+    "compile": "tsc",
+    "test": "jest --config ../../jest.config.js --rootDir . --passWithNoTests"
+  },
+  "keywords": [
+    "theta-rpc",
+    "json-rpc",
+    "transport",
+    "multiple transport",
+    "rpc",
+    "ws",
+    "http",
+    "json",
+    "server",
+    "client"
+  ],
+  "bugs": {
+    "url": "https://github.com/theta-rpc/theta-rpc/issues"
+  },
+  "devDependencies": {
+    "@types/node": "^14.0.6",
+    "typescript": "^3.9.3"
+  },
+  "dependencies": {},
+  "gitHead": "a7ca49ab15e77f4121c1b506fd44351b2da3c9b2"
+}
