@@ -1,106 +1,97 @@
-import { CONSTANTS, ITransport } from '@theta-rpc/common';
-import { EventEmitter } from 'events';
+import createDebug from "debug";
+import http from "http";
+import express from "express";
+import corsMiddleware from "cors";
 
-import express from 'express';
-import http from 'http';
-import cors from 'cors';
-import { bodyCollectorMiddleware } from './middlewares';
+import { ThetaTransport } from "@theta-rpc/transport";
 
-import { IHttpTransportOptions } from './interfaces';
+import { IHTTPTransportOptions, IHTTPTransportContext } from "./interfaces";
+import { HTTPTransportContext } from "./http.transport-context";
 
-export class HttpTransport extends EventEmitter implements ITransport {
-    public readonly name = 'HTTP transport';
+const debug = createDebug("THETA-RPC:HTTP-TRANSPORT");
 
-    private server: http.Server;
-    private httpDecorator: express.Application;
+export class HTTPTransport extends ThetaTransport {
+  private httpServer!: http.Server;
+  private httpServerDecorator!: express.Application;
 
-    private defaultEndpoint = '/';
-    private defaultHostname = '127.0.0.1';
+  constructor(public options: IHTTPTransportOptions) {
+    super("HTTP transport");
+    const decorator = options.express ? options.express : express();
+    const server = http.createServer(decorator);
+    decorator.disable("x-powered-by");
 
-    constructor(private options: IHttpTransportOptions) {
-        super();
-
-        const decorator = express();
-        const server = http.createServer(decorator);
-
-        // disable x-powered-by header
-        decorator.disable('x-powered-by');
-
-        this.server = server;
-        this.httpDecorator = decorator;
-
-        this.useFirstLayerMiddlewares();
-        this.registerListeners();
-        this.registerEmitters();
+    if (options.cors) {
+      decorator.use(corsMiddleware(options.cors));
     }
 
-    private useFirstLayerMiddlewares() {
-        if (this.options.cors) {
-            this.httpDecorator.use(cors(this.options.cors));
+    this.httpServer = server;
+    this.httpServerDecorator = decorator;
+    this.handleErrors();
+  }
+
+  public onRequest(
+    callback: (body: string | Buffer, transportContext: any) => any
+  ) {
+    this.httpServerDecorator.post(
+      this.options.path || "/",
+      express.raw({
+        limit: this.options.bodyLimit || "1mb",
+        type: "application/json",
+      }),
+      (request: express.Request, response: express.Response) => {
+        const context = this.createContext(request, response);
+        callback(request.body, context);
+      }
+    );
+  }
+
+  public reply(
+    data: object | null,
+    context: IHTTPTransportContext
+  ): Promise<void> {
+    return new Promise((resolve, reject) => {
+      const response = context.getResponse();
+
+      if (!response.writableEnded) {
+        if (!data) {
+          response.status(204).end();
+          resolve();
+          return;
         }
 
-        this.httpDecorator.use(bodyCollectorMiddleware);
-    }
+        response.set("Content-Type", "application/json");
+        response.send(data);
+        resolve();
+      }
+    });
+  }
 
-    private startedEmitter() {
-        this.server.on('listening', () => this.emit(CONSTANTS.THETA_TRANSPORT_STARTED));
-    }
+  public handleErrors() {
+    this.httpServer.on("error", (error) => {
+      debug(error);
+    });
+  }
 
-    private errorEmitter() {
-        this.server.on('error', (error: Error) => this.emit(CONSTANTS.THETA_TRANSPORT_ERROR, error));
-    }
+  public createContext(request: express.Request, response: express.Response) {
+    return new HTTPTransportContext(request, response);
+  }
 
-    private incomingMessageEmitter() {
-        this.httpDecorator.post(this.options.endpoint || this.defaultEndpoint, (req: express.Request, res: express.Response) => {
-            this.emit(CONSTANTS.THETA_TRANSPORT_INCOMING_MESSAGE, res, req.body);
-        });
-    }
+  public start(): Promise<void> {
+    const { hostname, port } = this.options;
+    return new Promise((resolve, reject) => {
+      this.httpServer.listen(port, hostname, resolve).on("error", reject);
+    });
+  }
 
-    private stoppedEmitter() {
-        this.server.on('close', () => this.emit(CONSTANTS.THETA_TRANSPORT_STOPPED));
-    }
-
-    private registerEmitters() {
-        this.startedEmitter();
-        this.errorEmitter();
-        this.incomingMessageEmitter();
-        this.stoppedEmitter();
-    }
-
-    private startListener() {
-        this.on(CONSTANTS.THETA_TRANSPORT_START, () => this.start())
-    }
-
-    private replyListener() {
-        this.on(CONSTANTS.THETA_TRANSPORT_REPLY, (expected: express.Response, data: string) => this.reply(expected, data));
-    }
-
-    private stopListener() {
-        this.on(CONSTANTS.THETA_TRANSPORT_STOP, () => this.stop());
-    }
-
-    private registerListeners() {
-        this.startListener();
-        this.replyListener();
-        this.stopListener();
-    }
-
-    private start() {
-        const { options } = this;
-        this.server.listen(options.port, options.hostname || this.defaultHostname);
-    }
-
-    private reply(expected: express.Response, data: string) {
-        if (data.length === 0) {
-            expected.status(204);
+  public stop(): Promise<void> {
+    return new Promise((resolve, reject) => {
+      this.httpServer.close((err) => {
+        if (err) {
+          reject(err);
+          return;
         }
-
-        expected.set('Content-Type', 'application/json');
-
-        expected.send(data);
-    }
-
-    private stop() {
-        this.server.close();
-    }
+        resolve();
+      });
+    });
+  }
 }
