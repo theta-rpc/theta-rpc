@@ -19,11 +19,6 @@
   },
   "license": "MIT",
   "devDependencies": {
-    "@types/jest": "^25.2.3",
-    "jest": "^26.0.1",
-    "lerna": "^3.22.0",
-    "rimraf": "^3.0.2",
-    "ts-jest": "^26.1.0",
-    "typescript": "^3.9.3"
+    "lerna": "^3.22.0"
   }
 }
