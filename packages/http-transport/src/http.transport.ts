@@ -46,7 +46,7 @@ export class HTTPTransport extends ThetaTransport {
   }
 
   public reply(
-    data: object | null,
+    data: any,
     context: IHTTPTransportContext
   ): Promise<void> {
     return new Promise((resolve, reject) => {
