@@ -8,7 +8,7 @@
   "scripts": {
     "bootstrap": "npm i && lerna bootstrap",
     "bootstrap:ci": "npm ci && lerna bootstrap --ci",
-    "test": "lerna run test",
+    "test": "nyc --reporter html --include 'packages/*/src/**.ts' mocha -r ts-node/register './packages/*/test/**.test.ts' --growl --exit",
     "test:stream": "lerna run test --stream",
     "version": "lerna version --force-publish",
     "clean": "lerna clean --yes && lerna run clean",
@@ -19,6 +19,15 @@
   },
   "license": "MIT",
   "devDependencies": {
-    "lerna": "^3.22.0"
+    "@types/chai": "^4.2.15",
+    "@types/mocha": "^8.2.1",
+    "axios": "^0.21.1",
+    "chai": "^4.3.0",
+    "lerna": "^3.22.1",
+    "mocha": "^8.3.0",
+    "nyc": "^15.1.0",
+    "sinon": "^9.2.4",
+    "ts-node": "^9.1.1",
+    "typescript": "^4.2.2"
   }
 }
