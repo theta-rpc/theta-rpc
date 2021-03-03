@@ -7,6 +7,7 @@ export class HTTPTransportContext implements IHTTPTransportContext {
     private response: Response
   ) { }
 
+  /* istanbul ignore next */
   public getRequest() {
     return this.request;
   }

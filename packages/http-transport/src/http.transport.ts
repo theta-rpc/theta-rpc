@@ -20,24 +20,27 @@ export class HTTPTransport extends ThetaTransport {
     const server = http.createServer(decorator);
     decorator.disable("x-powered-by");
 
-    if (options.cors) {
-      decorator.use(corsMiddleware(options.cors));
-    }
-
     this.httpServer = server;
     this.httpServerDecorator = decorator;
     this.handleErrors();
   }
 
-  public onRequest(
-    callback: (body: string | Buffer, transportContext: any) => any
-  ) {
-    this.httpServerDecorator.post(
-      this.options.path || "/",
+  public onRequest(callback: (body: any, transportContext: any) => any) {
+    const middlewares: any[] = [
       express.raw({
-        limit: this.options.bodyLimit || "1mb",
+        limit: this.options.bodyLimit,
         type: "application/json",
       }),
+    ];
+
+    /* istanbul ignore else */
+    if (this.options.cors) {
+      middlewares.push(corsMiddleware(this.options.cors));
+    }
+
+    this.httpServerDecorator.post(
+      this.options.path || "/",
+      middlewares,
       (request: express.Request, response: express.Response) => {
         const context = this.createContext(request, response);
         callback(request.body, context);
@@ -45,13 +48,11 @@ export class HTTPTransport extends ThetaTransport {
     );
   }
 
-  public reply(
-    data: any,
-    context: IHTTPTransportContext
-  ): Promise<void> {
+  public reply(data: any, context: IHTTPTransportContext): Promise<void> {
     return new Promise((resolve, reject) => {
       const response = context.getResponse();
 
+      /* istanbul ignore next */
       if (!response.writableEnded) {
         if (!data) {
           response.status(204).end();
@@ -67,6 +68,7 @@ export class HTTPTransport extends ThetaTransport {
   }
 
   public handleErrors() {
+    /* istanbul ignore next */
     this.httpServer.on("error", (error) => {
       debug(error);
     });
@@ -86,6 +88,7 @@ export class HTTPTransport extends ThetaTransport {
   public stop(): Promise<void> {
     return new Promise((resolve, reject) => {
       this.httpServer.close((err) => {
+        /* istanbul ignore next */
         if (err) {
           reject(err);
           return;
