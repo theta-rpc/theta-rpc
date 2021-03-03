@@ -2,7 +2,11 @@
   "name": "@theta-rpc/core",
   "version": "1.2.2",
   "description": "JSON-RPC 2.0 Server and Client library for Node.js",
-  "author": "Capgop <capgop0@gmail.com>",
+  "author": {
+    "email": "mhw0@yahoo.com",
+    "name": "4h7l",
+    "url": "https://github.com/4h7l"
+  },
   "homepage": "https://github.com/theta-rpc/theta-rpc#readme",
   "license": "MIT",
   "main": "lib/index.js",

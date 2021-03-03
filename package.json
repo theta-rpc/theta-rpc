@@ -2,8 +2,9 @@
   "name": "theta-rpc",
   "description": "JSON-RPC 2.0 Server and Client library for Node.js",
   "author": {
-    "email": "capgop0@gmail.com",
-    "name": "Capgop"
+    "email": "mhw0@yahoo.com",
+    "name": "4h7l",
+    "url": "https://github.com/4h7l"
   },
   "scripts": {
     "bootstrap": "npm i && lerna bootstrap",
