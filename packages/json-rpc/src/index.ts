@@ -1,4 +1,5 @@
 export * from './constants';
 export * from './exceptions';
-export * from './validator';
 export * from './types';
+export * from './utils';
+export * from './validator';
