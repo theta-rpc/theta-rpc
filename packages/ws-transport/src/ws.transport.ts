@@ -1,87 +1,74 @@
-import { CONSTANTS, ITransport } from '@theta-rpc/common';
-
-import { EventEmitter } from 'events';
+import { ThetaTransport } from '@theta-rpc/transport';
+import createDebug from 'debug';
 import http from 'http';
-import ws from 'ws';
+import WebSocket from 'ws';
 
-import { IWsTransportOptions } from './interfaces';
+import { IWsTransportOptions, IWsTransportContext } from './interfaces';
+import { WsTransportContext } from './ws.transport-context';
 
-export class WsTransport extends EventEmitter implements ITransport {
-  public readonly name = 'WebSocket transport';
+const debug = createDebug('THETA-RPC:WS-TRANSPORT');
 
+export class WsTransport extends ThetaTransport {
   private httpServer: http.Server;
-  private ws: ws.Server;
-
-  private defaultEndpoint = '/';
-  private defaultHostname = '127.0.0.1';
+  private wss: WebSocket.Server;
 
   constructor(private options: IWsTransportOptions) {
-    super();
+    super('WebSocket transport');
 
     const httpServer = http.createServer();
-    const websocket = new ws.Server({ server: httpServer, path: options.endpoint || this.defaultEndpoint });
+    const wss = new WebSocket.Server({ server: httpServer, path: options.path || '/' });
 
     this.httpServer = httpServer;
-    this.ws = websocket;
-
-    this.registerListeners();
-    this.registerEmitters();
+    this.wss = wss;
+    this.handleErrors();
   }
 
-  private startedEmitter() {
-    this.ws.on('listening', () => this.emit(CONSTANTS.THETA_TRANSPORT_STARTED));
-  }
-
-  private errorEmitter() {
-    this.ws.on('error', (error: Error) => this.emit(CONSTANTS.THETA_TRANSPORT_ERROR, error));
-  }
-
-  private incomingMessageEmitter() {
-    this.ws.on('connection', (socket) => {
-      socket.on('message', (data) => this.emit(CONSTANTS.THETA_TRANSPORT_INCOMING_MESSAGE, socket, data));
+  public reply(data: any, transportContext: IWsTransportContext): Promise<void> {
+    const connection = transportContext.getConnection();
+    return new Promise((resolve, reject) => {
+      if(data) {
+        connection.send(JSON.stringify(data), (error?: Error) => {
+          if(error) {
+            debug(error);
+            reject();
+            return;
+          }
+          resolve();
+        });
+      }
     });
   }
 
-  private stoppedEmitter() {
-    this.httpServer.on('close', () => this.emit(CONSTANTS.THETA_TRANSPORT_STOPPED));
+  public onRequest(cb: (data: any, transportContext: any) => any) {
+    this.wss.on('connection', (socket) => {
+      socket.on('message', (data) => {
+        const context = this.createContext(socket);
+        cb(data, context);
+      })
+    })
   }
 
-  private registerEmitters() {
-    this.startedEmitter();
-    this.errorEmitter();
-    this.incomingMessageEmitter();
-    this.stoppedEmitter();
+  private handleErrors() {
+    this.wss.on('error', (error) => {
+      debug(error);
+    })
   }
 
-  private startListener() {
-    this.on(CONSTANTS.THETA_TRANSPORT_START, () => this.start());
+  private createContext(connection: WebSocket) {
+    return new WsTransportContext(connection);
   }
 
-  private replyListener() {
-    this.on(CONSTANTS.THETA_TRANSPORT_REPLY, (expected: any, data: string) => this.reply(expected, data));
+  public start(): Promise<void> {
+    return new Promise((resolve, reject) => {
+      this.httpServer.listen(this.options.port, this.options.hostname, resolve).once('error', reject);
+    });
   }
 
-  private stopListener() {
-    this.on(CONSTANTS.THETA_TRANSPORT_STOP, () => this.stop());
-  }
-
-  private registerListeners() {
-    this.startListener();
-    this.replyListener();
-    this.stopListener();
-  }
-
-  private start() {
-    const { options } = this;
-
-    this.httpServer.listen(options.port, options.hostname || this.defaultHostname);
-  }
-
-  private reply(expected: any, data: string) {
-    expected.send(data);
-  }
-
-  private stop() {
-    this.httpServer.close();
+  public stop(): Promise<void> {
+    return new Promise((resolve, reject) => {
+      this.httpServer.close((err) => {
+        err ? reject() : resolve();
+      });
+    });
   }
 }

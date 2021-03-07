@@ -1,5 +1,11 @@
+import WebSocket from 'ws';
+
 export interface IWsTransportOptions {
     hostname?: string,
     port: number,
-    endpoint?: string
+    path?: string
+}
+
+export interface IWsTransportContext {
+    getConnection(): WebSocket
 }
