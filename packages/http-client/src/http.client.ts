@@ -1,4 +1,5 @@
 import axios from "axios";
+import createDebug from 'debug';
 import {
   StructuredParamsType,
   requestFactory,
@@ -6,15 +7,16 @@ import {
 } from "@theta-rpc/json-rpc";
 import { RequestType, ResponseType } from "./types";
 
+const debug = createDebug('THETA-RPC:HTTP-CLIENT');
+
 export class HTTPClient {
   constructor(private connectionURL: string) {}
 
   private async httpRequest(data: any) {
-    return (
-      await axios.post<any, any>(this.connectionURL, data, {
-        headers: { "Content-Type": "application/json" },
-      })
-    ).data;
+    debug('-> %o', data);
+    const response = (await axios.post<any, any>(this.connectionURL, data, { headers: { "Content-Type": "application/json" } })).data;
+    debug('<- %o', response);
+    return response;
   }
 
   public async call<T = any>(
