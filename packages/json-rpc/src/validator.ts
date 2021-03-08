@@ -69,11 +69,3 @@ export function validateRequest(o: UnknownObjectType): RequestObjectType {
     id: id(o),
   };
 }
-
-export function validateResponse(o: UnknownObjectType): ResponseObjectType {
-  return {
-    jsonrpc: jsonrpc(o),
-    result: result(o),
-    id: id(o),
-  };
-}
