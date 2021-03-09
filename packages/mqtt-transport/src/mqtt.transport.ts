@@ -1,7 +1,7 @@
 import createDebug from 'debug';
 import mqtt from 'mqtt';
 import { ThetaTransport } from '@theta-rpc/transport';
-import { IMQTTTransportContext, IMQTTTransportOptions } from './interfaces';
+import { IMQTTTransportOptions } from './interfaces';
 import { MQTTTransportContext } from './mqtt.transport-context';
 
 const debug = createDebug('THETA-RPC:MQTT-TRANSPORT');
