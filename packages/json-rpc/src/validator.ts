@@ -53,14 +53,6 @@ function id(o: UnknownObjectType): RequestIDType {
   return o.id;
 }
 
-function result(o: UnknownObjectType): any {
-  if (!("result" in o)) {
-    throw new InvalidRequestException();
-  }
-
-  return o.result;
-}
-
 export function validateRequest(o: UnknownObjectType): RequestObjectType {
   return {
     jsonrpc: jsonrpc(o),
