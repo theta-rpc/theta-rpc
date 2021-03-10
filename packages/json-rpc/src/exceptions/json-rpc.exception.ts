@@ -4,6 +4,7 @@ export class JSONRPCException extends Error {
   constructor(public jsonrpcError: ExceptionOptionsType) {
     super(jsonrpcError.message);
 
-    Object.setPrototypeOf(this, JSONRPCException.prototype);
+    const proto = new.target.prototype;
+    Object.setPrototypeOf(this, proto);
   }
 }
