@@ -6,12 +6,13 @@ import {
   RequestObjectType,
   StructuredParamsType,
 } from "./types";
+import { SPEC_VERSION } from './constants';
 
 export function successResponseFactory(
   result: any,
   id: RequestIDType = null
 ): SuccessResponseObjectType {
-  return { jsonrpc: "2.0", result, id };
+  return { jsonrpc: SPEC_VERSION, result, id };
 }
 
 export function requestFactory(
@@ -19,12 +20,12 @@ export function requestFactory(
   params?: StructuredParamsType,
   id?: RequestIDType
 ): RequestObjectType {
-  return { jsonrpc: "2.0", method, params, id };
+  return { jsonrpc: SPEC_VERSION, method, params, id };
 }
 
 export function errorResponseFactory(
   error: { jsonrpcError: ErrorObjectType },
   id: RequestIDType = null
 ): ErrorResponseObjectType {
-  return { jsonrpc: "2.0", error: error.jsonrpcError, id };
+  return { jsonrpc: SPEC_VERSION, error: error.jsonrpcError, id };
 }
