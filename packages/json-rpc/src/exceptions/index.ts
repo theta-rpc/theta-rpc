@@ -7,3 +7,4 @@ export * from './invalid-request.exception';
 export * from './method-not-found.exception';
 export * from './parse-error.exception';
 export * from './no-access-to-method.exception';
+export * from './bad-transport-data.exception';
