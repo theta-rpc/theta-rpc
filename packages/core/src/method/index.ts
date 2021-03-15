@@ -1,3 +1,3 @@
-export * from './methods.container';
+export * from './container';
 export * from './methods.explorer';
 export * from './types';
