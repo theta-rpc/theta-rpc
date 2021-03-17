@@ -44,7 +44,7 @@ function params(o: UnknownObjectType): StructuredParamsType {
 function id(o: UnknownObjectType): RequestIDType {
   if (
     "id" in o &&
-    (typeof o.id !== "number" || o.id % 1 !== 0 || o.id < 1) &&
+    (typeof o.id !== "number" || o.id % 1 !== 0) &&
     (typeof o.id !== "string" || o.id.length === 0)
   ) {
     throw new InvalidRequestException();
