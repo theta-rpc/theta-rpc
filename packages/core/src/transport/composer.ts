@@ -7,6 +7,12 @@ import { TransportOptionsType, TransportsStoreType } from "./types";
 const debug = createDebug("THETA-RPC");
 const requestDebug = debug.extend("REQUEST-LOG");
 
+// We can use `symbol.description`, but some browsers don't support it.
+// So browser compatibility is better
+function getSymbolDescr(symbol: Symbol): string {
+  return symbol.toString().slice(7, -1);
+}
+
 export class Composer {
   private transports: TransportsStoreType[] = [];
   constructor() {}
@@ -16,9 +22,9 @@ export class Composer {
       const instance = new transport(options);
 
       if (instance instanceof ThetaTransport) {
-        const signature = Symbol(randomBytes(4).toString("hex"));
-        this.transports.push({ instance, signature });
-        debug("[%s@%s]", instance.name, signature.description);
+        const hex = randomBytes(4).toString("hex");
+        this.transports.push({ instance, signature: Symbol(hex) });
+        debug("[%s@%s]", instance.name, hex);
         continue;
       }
       debug("Invalid transport: %s", transport.name);
@@ -35,7 +41,7 @@ export class Composer {
         requestDebug(
           "[%s@%s] -> %o",
           instance.name,
-          signature.description,
+          getSymbolDescr(signature),
           data
         );
         const context = new TransportContext(
@@ -52,6 +58,7 @@ export class Composer {
       (transport) => transport.signature === transportContext.signature
     )!;
     return new Promise((resolve) => {
+      const signature = getSymbolDescr(transportContext.signature);
       instance
         .reply(data, transportContext.context)
         .then(() => {
@@ -59,12 +66,12 @@ export class Composer {
             requestDebug(
               "[%s@%s] <- %o",
               instance.name,
-              signature.description,
+              signature,
               data
             );
         })
         .catch(() => {
-          debug("[%s@%s] X- %o", instance.name, signature.description, data);
+          debug("[%s@%s] X- %o", instance.name, signature, data);
         })
         .finally(resolve);
     });
