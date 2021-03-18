@@ -1,4 +1,3 @@
-export { IContext } from './interfaces';
-
-export * from './server';
-export * from './theta-rpc.factory';
+export { RequestContextType } from './server';
+export { Protected } from './decorators';
+export { AccessorType } from './method';

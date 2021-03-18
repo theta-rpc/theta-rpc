@@ -1,0 +1,143 @@
+import createDebug from "debug";
+import {
+  ParseErrorException,
+  InvalidRequestException,
+  BadTransportDataException,
+  errorResponseFactory,
+  RequestObjectType,
+  ResponseObjectType,
+  validateRequest
+} from "@theta-rpc/json-rpc";
+import { Composer } from "../transport/composer";
+import { Executor } from "../method/executor";
+import { RequestContext } from "./request-context";
+import { TransportContext } from "../transport/transport-context";
+import { RequestContextType } from "./types";
+
+const debug = createDebug("THETA-RPC");
+
+type InternalResponseType =
+  | (ResponseObjectType | undefined)
+  | (ResponseObjectType | undefined)[];
+
+export class Server {
+  constructor(private composer: Composer, private executor: Executor) {}
+
+  private async processRequest(
+    request: any,
+    transportContext: TransportContext
+  ): Promise<void> {
+    try {
+      const data = this.prepare(request);
+      let response: InternalResponseType;
+
+      if (Array.isArray(data)) {
+        if (!data.length) throw new InvalidRequestException();
+        response = await Promise.all(
+          data.map((value) => this.callMethod(value, transportContext, true))
+        );
+      } else {
+        response = await this.callMethod(data, transportContext, false);
+      }
+      await this.respond(response, transportContext);
+    } catch (e) {
+      await this.respond(errorResponseFactory(e), transportContext);
+    }
+  }
+
+  private sanitizeResponse(
+    response: InternalResponseType
+  ): InternalResponseType {
+    if (Array.isArray(response)) {
+      const filtered = response.filter((val) => val !== undefined);
+      return filtered.length ? filtered : undefined;
+    }
+
+    return response;
+  }
+
+  private prepare(data: any): any {
+    if (Buffer.isBuffer(data)) {
+      return this.tryParseJSON(data.toString("utf-8"));
+    } else if (typeof data === "string") {
+      return this.tryParseJSON(data);
+    } else if (typeof data === "object" && data !== null) {
+      return data;
+    }
+
+    throw new BadTransportDataException();
+  }
+
+  private async respond(
+    response: InternalResponseType,
+    transportContext: TransportContext
+  ): Promise<void> {
+    const sanitizedResponse = this.sanitizeResponse(response);
+
+    if (sanitizedResponse) {
+      await this.composer.respond(sanitizedResponse, transportContext);
+      return;
+    }
+
+    await this.composer.respond(undefined, transportContext);
+  }
+
+  private async callMethod(
+    requestObject: any,
+    transportContext: TransportContext,
+    inBatchScope: boolean
+  ): Promise<ResponseObjectType | undefined> {
+    try {
+      const validatedObject = validateRequest(requestObject);
+      const requestContext = this.createRequestContext(
+        validatedObject,
+        inBatchScope,
+        transportContext
+      );
+      const response = await this.executor.execute(
+        validatedObject.method,
+        requestContext
+      );
+      return requestContext.isNotification ? undefined : response;
+    } catch {
+      return errorResponseFactory(new InvalidRequestException());
+    }
+  }
+
+  private tryParseJSON(data: any): any {
+    try {
+      return JSON.parse(data);
+    } catch (e) {
+      throw new ParseErrorException();
+    }
+  }
+
+  private createRequestContext(
+    requestObject: RequestObjectType,
+    inBatchScope: boolean,
+    transportContext: TransportContext
+  ): RequestContextType {
+    return new RequestContext(
+      requestObject.id,
+      requestObject.method,
+      requestObject.params,
+      !!!requestObject.id,
+      inBatchScope,
+      transportContext.context
+    );
+  }
+
+  public start(callback?: (e?: Error) => any) {
+    this.composer.onRequest(this.processRequest.bind(this));
+    this.composer
+      .start()
+      .then(() => {
+        if (callback) callback();
+      })
+      .catch(callback);
+  }
+
+  public shutdown(callback?: (e?: Error) => any) {
+    this.composer.stop().then(callback).catch(callback);
+  }
+}
