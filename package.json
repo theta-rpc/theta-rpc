@@ -14,6 +14,8 @@
     "version": "lerna version --force-publish",
     "clean": "lerna clean --yes && lerna run clean",
     "build": "lerna run clean && lerna run build",
+    "prettier:check": "prettier --check packages/*/src/**.ts",
+    "prettier:fix": "prettier --write packages/*/src/**.ts",
     "publish": "lerna publish",
     "publish:github": "lerna publish --skip-npm",
     "publish:npm": "lerna publish --no-git-tag-version --no-push"
@@ -28,6 +30,7 @@
     "lerna": "^3.22.1",
     "mocha": "^8.3.0",
     "nyc": "^15.1.0",
+    "prettier": "^2.2.1",
     "rimraf": "^3.0.2",
     "sinon": "^9.2.4",
     "ts-node": "^9.1.1",
