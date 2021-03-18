@@ -10,13 +10,43 @@ import { RequestType, ResponseType } from "./types";
 const debug = createDebug('THETA-RPC:HTTP-CLIENT');
 
 export class HTTPClient {
+  private headers: any = {};
+  private queryParams: any = {};
   constructor(private connectionURL: string) {}
 
   private async httpRequest(data: any) {
     debug('-> %o', data);
-    const response = (await axios.post<any, any>(this.connectionURL, data, { headers: { "Content-Type": "application/json" } })).data;
+    const response = (
+      await axios.post<any, any>(this.connectionURL, data, {
+        headers: { ...this.headers, "Content-Type": "application/json" },
+        params: this.queryParams
+      })
+    ).data;
     debug('<- %o', response);
     return response;
+  }
+
+  public setHeader(key: string, value: string): HTTPClient {
+    this.headers[key] = value;
+    return this;
+  }
+
+  public setQueryParam(key: string, value: string): HTTPClient {
+    this.queryParams[key] = value;
+    return this;
+  }
+
+  public proxify(): any {
+    const handler: ProxyHandler<any>= {
+      get: (target, propKey) => {
+        if(typeof propKey !== 'string') throw new Error('Method name must be a string');
+        return (...args: any) => {
+          return this.call(propKey, [...args]);
+        }
+      }
+    }
+
+    return new Proxy({}, handler);
   }
 
   public async call<T = any>(
