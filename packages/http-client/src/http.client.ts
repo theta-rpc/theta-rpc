@@ -11,15 +11,13 @@ const debug = createDebug('THETA-RPC:HTTP-CLIENT');
 
 export class HTTPClient {
   private headers: any = {};
-  private queryParams: any = {};
   constructor(private connectionURL: string) {}
 
   private async httpRequest(data: any) {
     debug('-> %o', data);
     const response = (
       await axios.post<any, any>(this.connectionURL, data, {
-        headers: { ...this.headers, "Content-Type": "application/json" },
-        params: this.queryParams
+        headers: { ...this.headers, "Content-Type": "application/json" }
       })
     ).data;
     debug('<- %o', response);
@@ -28,11 +26,6 @@ export class HTTPClient {
 
   public setHeader(key: string, value: string): HTTPClient {
     this.headers[key] = value;
-    return this;
-  }
-
-  public setQueryParam(key: string, value: string): HTTPClient {
-    this.queryParams[key] = value;
     return this;
   }
 
