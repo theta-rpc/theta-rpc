@@ -9,8 +9,8 @@
   "scripts": {
     "bootstrap": "npm i && lerna bootstrap",
     "bootstrap:ci": "npm ci && lerna bootstrap --ci",
-    "test": "mocha -r ts-node/register './packages/*/test/**.test.ts' --growl --exit",
-    "test:coverage": "nyc --reporter html --reporter text --include 'packages/*/src/**.ts' npm run test",
+    "test": "mocha -r ts-node/register './packages/*/test/**/*.test.ts' --growl --exit",
+    "test:coverage": "nyc --reporter html --reporter text --include 'packages/*/src/**/*.ts' npm run test",
     "version": "lerna version --force-publish",
     "clean": "lerna clean --yes && lerna run clean",
     "build": "lerna run clean && lerna run build",
