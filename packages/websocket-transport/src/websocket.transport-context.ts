@@ -1,7 +1,7 @@
 import WebSocket from 'ws';
-import { IWsTransportContext } from './interfaces';
+import { IWebSocketTransportContext } from './interfaces';
 
-export class WsTransportContext implements IWsTransportContext {
+export class WebSocketTransportContext implements IWebSocketTransportContext {
   constructor(private connection: WebSocket) {}
 
   public getConnection() {

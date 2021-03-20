@@ -1,1 +1,0 @@
-# `@theta-rpc/ws-transport`

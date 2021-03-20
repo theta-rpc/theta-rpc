@@ -3,16 +3,16 @@ import createDebug from 'debug';
 import http from 'http';
 import WebSocket from 'ws';
 
-import { IWsTransportOptions, IWsTransportContext } from './interfaces';
-import { WsTransportContext } from './ws.transport-context';
+import { IWebSocketTransportOptions, IWebSocketTransportContext } from './interfaces';
+import { WebSocketTransportContext } from './websocket.transport-context';
 
-const debug = createDebug('THETA-RPC:WS-TRANSPORT');
+const debug = createDebug('THETA-RPC:WEBSOCKET-TRANSPORT');
 
-export class WsTransport extends ThetaTransport {
+export class WebSocketTransport extends ThetaTransport {
   private httpServer: http.Server;
   private wss: WebSocket.Server;
 
-  constructor(private options: IWsTransportOptions) {
+  constructor(private options: IWebSocketTransportOptions) {
     super('WebSocket transport');
 
     const httpServer = http.createServer();
@@ -23,7 +23,7 @@ export class WsTransport extends ThetaTransport {
     this.handleErrors();
   }
 
-  public reply(data: any, transportContext: IWsTransportContext): Promise<void> {
+  public reply(data: any, transportContext: IWebSocketTransportContext): Promise<void> {
     const connection = transportContext.getConnection();
     return new Promise((resolve, reject) => {
       if(data) {
@@ -55,7 +55,7 @@ export class WsTransport extends ThetaTransport {
   }
 
   private createContext(connection: WebSocket) {
-    return new WsTransportContext(connection);
+    return new WebSocketTransportContext(connection);
   }
 
   public start(): Promise<void> {
