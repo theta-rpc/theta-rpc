@@ -1,9 +1,9 @@
-//FIXME: context type
-export type AccessorType = (context: any) => Promise<boolean> | boolean;
+import { RequestContextType } from '../server';
+
+export type AccessorType = (context: RequestContextType) => Promise<boolean> | boolean;
 
 export type MethodObjectType = {
   method: string,
-  //FIXME: context type
-  handler: (context: any) => any,
+  handler: (context: RequestContextType) => any,
   accessors: AccessorType[]
 }
