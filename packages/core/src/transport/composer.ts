@@ -1,6 +1,6 @@
 import { randomBytes } from "crypto";
 import createDebug from "debug";
-import { ThetaTransport } from '@theta-rpc/transport';
+import { ThetaTransport } from "@theta-rpc/transport";
 import { TransportContext } from "./transport-context";
 import { TransportOptionsType, TransportsStoreType } from "./types";
 
@@ -44,10 +44,7 @@ export class Composer {
           getSymbolDescr(signature),
           data
         );
-        const context = new TransportContext(
-          this.transports.length === 1 ? transportContext : undefined,
-          signature
-        );
+        const context = new TransportContext(transportContext, signature);
         callback(data, context);
       });
     });
@@ -63,12 +60,7 @@ export class Composer {
         .reply(data, transportContext.context)
         .then(() => {
           if (data)
-            requestDebug(
-              "[%s@%s] <- %o",
-              instance.name,
-              signature,
-              data
-            );
+            requestDebug("[%s@%s] <- %o", instance.name, signature, data);
         })
         .catch(() => {
           debug("[%s@%s] X- %o", instance.name, signature, data);
