@@ -52,7 +52,8 @@
   "dependencies": {
     "@theta-rpc/json-rpc": "^1.2.2",
     "@theta-rpc/transport": "^1.2.2",
-    "debug": "^4.3.1"
+    "debug": "^4.3.1",
+    "reflect-metadata": "^0.1.13"
   },
   "gitHead": "a7ca49ab15e77f4121c1b506fd44351b2da3c9b2"
 }
