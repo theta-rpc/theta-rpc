@@ -1,7 +1,7 @@
 import createDebug from "debug";
 import { ApplicationOptionsType } from "./types";
 import { Server } from "./server";
-import { Explorer, Executor, Container } from "./method";
+import { Explorer, Executor, Container, RPCExtension } from "./method";
 import { Composer } from "./transport";
 
 const debug = createDebug("THETA-RPC");
@@ -18,6 +18,7 @@ export class Application {
   public start(callback?: (error?: Error) => void) {
     debug("Starting the application..");
     this.composer.load(this.options.server.transports);
+    this.explorer.explore([RPCExtension], true);
     this.explorer.explore([...(this.options.methods || [])]);
     this.server.start(callback);
   }
