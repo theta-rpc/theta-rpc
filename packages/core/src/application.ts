@@ -6,18 +6,18 @@ import { Composer } from "./transport";
 
 const debug = createDebug("THETA-RPC");
 
-export class Application<TransportOptions extends any[]> {
+export class Application {
   private container = new Container();
   private explorer = new Explorer(this.container);
   private executor = new Executor(this.container);
   private composer = new Composer();
   private server = new Server(this.composer, this.executor);
 
-  constructor(private options: ApplicationOptionsType<TransportOptions>) { }
+  constructor(private options: ApplicationOptionsType) { }
 
   public start(callback?: (error?: Error) => void) {
     debug("Starting the application..");
-    this.composer.load<TransportOptions>(this.options.server.transports);
+    this.composer.load(this.options.server.transports);
     this.explorer.explore([...(this.options.methods || [])]);
     this.server.start(callback);
   }
@@ -32,8 +32,6 @@ export class Application<TransportOptions extends any[]> {
   }
 }
 
-export function createApplication<TransportOptions extends any[]>(
-  options: ApplicationOptionsType<TransportOptions>
-) {
+export function createApplication(options: ApplicationOptionsType) {
   return new Application(options);
 }

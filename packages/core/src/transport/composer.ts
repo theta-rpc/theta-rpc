@@ -2,7 +2,7 @@ import { randomBytes } from "crypto";
 import createDebug from "debug";
 import { ThetaTransport } from "@theta-rpc/transport";
 import { TransportContext } from "./transport-context";
-import { TransportOptionsType, TransportsStoreType } from "./types";
+import { TransportsStoreType } from "./types";
 
 const debug = createDebug("THETA-RPC");
 const requestDebug = debug.extend("REQUEST-LOG");
@@ -17,17 +17,14 @@ export class Composer {
   private transports: TransportsStoreType[] = [];
   constructor() {}
 
-  public load<T>(transports: TransportOptionsType<T>[]): void {
-    for (const { transport, options } of transports) {
-      const instance = new transport(options);
-
-      if (instance instanceof ThetaTransport) {
+  public load(transports: ThetaTransport[]): void {
+    for (const transport of transports) {
+      if (transport instanceof ThetaTransport) {
         const hex = randomBytes(4).toString("hex");
-        this.transports.push({ instance, signature: Symbol(hex) });
-        debug("[%s@%s]", instance.name, hex);
+        this.transports.push({ instance: transport, signature: Symbol(hex) });
+        debug("[%s@%s]", transport.name, hex);
         continue;
       }
-      debug("Invalid transport: %s", transport.name);
     }
   }
 
