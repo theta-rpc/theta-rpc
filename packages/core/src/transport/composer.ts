@@ -1,4 +1,3 @@
-import { randomBytes } from "crypto";
 import createDebug from "debug";
 import { ThetaTransport } from "@theta-rpc/transport";
 import { TransportContext } from "./transport-context";
@@ -20,9 +19,9 @@ export class Composer {
   public load(transports: ThetaTransport[]): void {
     for (const transport of transports) {
       if (transport instanceof ThetaTransport) {
-        const hex = randomBytes(4).toString("hex");
-        this.transports.push({ instance: transport, signature: Symbol(hex) });
-        debug("[%s@%s]", transport.name, hex);
+        const signature = this.sign();
+        this.transports.push({ instance: transport, signature: Symbol(signature) });
+        debug("[%s@%s]", transport.name, signature);
         continue;
       }
     }
@@ -30,6 +29,11 @@ export class Composer {
 
   public clearInstances() {
     this.transports = [];
+  }
+
+  private sign() {
+    const str = Math.floor(Math.random() * Math.pow(16, 6)).toString(16);
+    return "0".repeat(6 - str.length) + str;
   }
 
   public onRequest(callback: (data: any, transportContext: any) => any): void {
