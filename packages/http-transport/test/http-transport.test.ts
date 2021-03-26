@@ -53,16 +53,15 @@ describe('HTTP transport', () => {
 
   it('custom express instance', async () => {
     const expressApp = express();
-    expressApp.get('/route', (req, res) => {
-      res.send('ok');
+    const transport2 = new HTTPTransport({ express: expressApp, path: '/test-route' });
+    transport2.onRequest((data, context) => {
+      transport2.reply('ok', context);
     });
-
-    const transport2 = new HTTPTransport({ express: expressApp, port: 1025 });
-    await transport2.start();
-    const response = await axios.get('http://localhost:1025/route');
+    const server = expressApp.listen(1025);
+    const response = await axios.post('http://localhost:1025/test-route');
     assert.equal(response.status, 200);
     assert.equal(response.data, 'ok');
-    await transport2.stop();
+    server.close();
   });
 
   after( async () => {
