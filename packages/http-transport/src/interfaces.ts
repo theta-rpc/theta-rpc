@@ -8,7 +8,7 @@ export interface IHTTPTransportContext {
 
 export interface IHTTPTransportOptions {
   hostname?: string,
-  port: number,
+  port?: number,
   path?: string,
   cors?: CorsOptions,
   express?: express.Application

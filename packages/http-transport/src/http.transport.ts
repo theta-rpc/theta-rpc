@@ -12,17 +12,23 @@ const debug = createDebug("THETA-RPC:HTTP-TRANSPORT");
 
 export class HTTPTransport extends ThetaTransport {
   private httpServer!: http.Server;
-  private httpServerDecorator!: express.Application;
+  private express!: express.Application;
 
   constructor(public options: IHTTPTransportOptions) {
     super("HTTP transport");
-    const decorator = options.express ? options.express : express();
-    const server = http.createServer(decorator);
-    decorator.disable("x-powered-by");
 
-    this.httpServer = server;
-    this.httpServerDecorator = decorator;
-    this.handleErrors();
+    let expressInstance: express.Application;
+
+    if(options.express) {
+      expressInstance = options.express;
+    } else {
+      expressInstance = express();
+      this.httpServer = http.createServer(expressInstance);
+      expressInstance.disable("x-powered-by");
+      this.handleErrors();
+    }
+
+    this.express = expressInstance;
   }
 
   public onRequest(callback: (body: any, transportContext: any) => any) {
@@ -38,7 +44,7 @@ export class HTTPTransport extends ThetaTransport {
       middlewares.push(corsMiddleware(this.options.cors));
     }
 
-    this.httpServerDecorator.post(
+    this.express.post(
       this.options.path || "/",
       middlewares,
       (request: express.Request, response: express.Response) => {
@@ -79,20 +85,24 @@ export class HTTPTransport extends ThetaTransport {
   }
 
   public start(): Promise<void> {
-    const { hostname, port } = this.options;
+    const { hostname, port, express } = this.options;
     return new Promise((resolve, reject) => {
-      this.httpServer.listen(port, hostname, resolve).on("error", reject);
+      if(express) return resolve();
+      if(port) {
+        this.httpServer.listen(port, hostname, resolve).once("error", reject);
+        return;
+      }
     });
   }
 
   public stop(): Promise<void> {
     return new Promise((resolve, reject) => {
+      if(this.options.express) {
+        return resolve();
+      }
       this.httpServer.close((err) => {
         /* istanbul ignore next */
-        if (err) {
-          reject(err);
-          return;
-        }
+        if (err) return reject(err);
         resolve();
       });
     });
