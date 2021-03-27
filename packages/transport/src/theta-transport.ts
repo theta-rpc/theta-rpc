@@ -1,10 +1,6 @@
-import { OnRequestCallbackType } from './types';
+import { EventEmitter } from '@theta-rpc/events';
+import { TransportEventsType } from './types';
 
-export abstract class ThetaTransport {
-  constructor(public name: string) { }
-
-  public abstract onRequest(cb: OnRequestCallbackType): any;
-  public abstract reply(data: any, transportContext: any): Promise<any>;
-  public abstract start(): Promise<any>;
-  public abstract stop(): Promise<any>;
+export class ThetaTransport extends EventEmitter<TransportEventsType> {
+  constructor(public name: string) { super(); }
 }
