@@ -19,19 +19,27 @@ export class HTTPTransport extends ThetaTransport {
 
     let expressInstance: express.Application;
 
-    if(options.express) {
+    if (options.express) {
       expressInstance = options.express;
     } else {
       expressInstance = express();
       this.httpServer = http.createServer(expressInstance);
       expressInstance.disable("x-powered-by");
-      this.handleErrors();
     }
 
     this.express = expressInstance;
+    this.registerRoute();
+    this.listen();
+    this.handleErrors();
   }
 
-  public onRequest(callback: (body: any, transportContext: any) => any) {
+  private listen() {
+    this.on("reply", (data, context) => this.reply(data, context));
+    this.on("start", () => this.start());
+    this.on("stop", () => this.stop());
+  }
+
+  public registerRoute() {
     const middlewares: any[] = [
       express.raw({
         limit: this.options.bodyLimit,
@@ -49,28 +57,22 @@ export class HTTPTransport extends ThetaTransport {
       middlewares,
       (request: express.Request, response: express.Response) => {
         const context = this.createContext(request, response);
-        callback(request.body, context);
+        this.emit("message", request.body, context);
       }
     );
   }
 
-  public reply(data: any, context: IHTTPTransportContext): Promise<void> {
-    return new Promise((resolve, reject) => {
-      const response = context.getResponse();
-
-      /* istanbul ignore next */
-      if (!response.writableEnded) {
-        if (!data) {
-          response.status(204).end();
-          resolve();
-          return;
-        }
-
-        response.set("Content-Type", "application/json");
-        response.send(data);
-        resolve();
+  public reply(data: any, context: IHTTPTransportContext) {
+    const response = context.getResponse();
+    /* istanbul ignore next */
+    if (!response.writableEnded) {
+      if (!data) {
+        return response.status(204).end();
       }
-    });
+
+      response.set("Content-Type", "application/json");
+      response.send(data);
+    }
   }
 
   public handleErrors() {
@@ -84,27 +86,21 @@ export class HTTPTransport extends ThetaTransport {
     return new HTTPTransportContext(request, response);
   }
 
-  public start(): Promise<void> {
+  public start() {
     const { hostname, port, express } = this.options;
-    return new Promise((resolve, reject) => {
-      if(express) return resolve();
-      if(port) {
-        this.httpServer.listen(port, hostname, resolve).once("error", reject);
-        return;
-      }
-    });
+    if(express) return;
+    if (port) {
+      this.httpServer
+      .listen(port, hostname, () => this.emit("started"))
+    }
   }
 
-  public stop(): Promise<void> {
-    return new Promise((resolve, reject) => {
-      if(this.options.express) {
-        return resolve();
-      }
-      this.httpServer.close((err) => {
-        /* istanbul ignore next */
-        if (err) return reject(err);
-        resolve();
-      });
+  public stop() {
+    if (this.options.express) {
+      return;
+    }
+    this.httpServer.close((err) => {
+      if(!err) return this.emit("stopped");                     
     });
   }
 }
