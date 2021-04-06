@@ -33,8 +33,8 @@ export class HTTPClient {
     const handler: ProxyHandler<any>= {
       get: (target, propKey) => {
         if(typeof propKey !== 'string') throw new Error('Method name must be a string');
-        return (...args: any) => {
-          return this.call(propKey, [...args]);
+        return (...args: any[]) => {
+          return this.call(propKey, args);
         }
       }
     }
