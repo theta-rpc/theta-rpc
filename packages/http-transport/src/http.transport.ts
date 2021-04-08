@@ -33,6 +33,10 @@ export class HTTPTransport extends ThetaTransport {
     this.handleErrors();
   }
 
+  public static attach(express: express.Application) {
+    return new HTTPTransport({ express })
+  }
+
   private listen() {
     this.on("reply", (data, context) => this.reply(data, context));
     this.on("start", () => this.start());
