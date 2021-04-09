@@ -2,13 +2,9 @@ import mqtt from 'mqtt';
 import { IMQTTTransportContext } from './interfaces';
 
 export class MQTTTransportContext implements IMQTTTransportContext {
-  constructor(private client: mqtt.Client, private topic: string) { }
+  constructor(private packet: mqtt.Packet) { }
 
-  public getClient() {
-    return this.client;
-  }
-
-  public getTopic() {
-    return this.topic;
+  public getPacket() {
+    return this.packet;
   }
 }
