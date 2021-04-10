@@ -80,10 +80,12 @@ export class HTTPTransport extends ThetaTransport {
   }
 
   public handleErrors() {
-    /* istanbul ignore next */
-    this.httpServer.on("error", (error) => {
-      debug(error);
-    });
+    if(!this.options.express) {
+      /* istanbul ignore next */
+      this.httpServer.on("error", (error) => {
+        debug(error);
+      });
+    }
   }
 
   public createContext(request: express.Request, response: express.Response) {
