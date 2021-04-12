@@ -63,12 +63,8 @@ export class HTTPClient {
   public async batch(
     requests: RequestType[]
   ): Promise<ResponseType[] | undefined> {
-    const batchRequest = requests.map((request, id) =>
-      requestFactory(
-        request.method,
-        request.params,
-        request.notify ? undefined : id + 1
-      )
+    const batchRequest = requests.map(({ method, params, notify }, id) =>
+      requestFactory(method, params, notify ? undefined : id + 1)
     );
     const response = await this.httpRequest(batchRequest);
     if (Array.isArray(response)) {
