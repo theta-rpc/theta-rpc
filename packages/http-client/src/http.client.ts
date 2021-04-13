@@ -1,5 +1,5 @@
-import axios from "axios";
-import createDebug from 'debug';
+import axios, { AxiosInstance } from "axios";
+import createDebug from "debug";
 import {
   StructuredParamsType,
   requestFactory,
@@ -7,20 +7,27 @@ import {
 } from "@theta-rpc/json-rpc";
 import { RequestType, ResponseType } from "./types";
 
-const debug = createDebug('THETA-RPC:HTTP-CLIENT');
+const debug = createDebug("THETA-RPC:HTTP-CLIENT");
 
 export class HTTPClient {
+  private client: AxiosInstance;
   private headers: any = {};
-  constructor(private connectionURL: string) {}
 
-  private async httpRequest(data: any) {
-    debug('-> %o', data);
+  constructor(connectionURL: string);
+  constructor(axiosInstance: AxiosInstance);
+  constructor(arg: string | AxiosInstance) {
+    this.client =
+      typeof arg === "string" ? axios.create({ baseURL: arg }) : arg;
+  }
+
+  private async sendHTTPRequest(request: any) {
+    debug("-> %o", request);
     const response = (
-      await axios.post<any, any>(this.connectionURL, data, {
-        headers: { ...this.headers, "Content-Type": "application/json" }
+      await this.client.post("/", request, {
+        headers: { "Content-Type": "application/json", ...this.headers },
       })
     ).data;
-    debug('<- %o', response);
+    debug("<- %o", response);
     return response;
   }
 
@@ -30,14 +37,15 @@ export class HTTPClient {
   }
 
   public proxify(): any {
-    const handler: ProxyHandler<any>= {
+    const handler: ProxyHandler<any> = {
       get: (target, propKey) => {
-        if(typeof propKey !== 'string') throw new Error('Method name must be a string');
+        if (typeof propKey !== "string")
+          throw new Error("Method name must be a string");
         return (...args: any[]) => {
           return this.call(propKey, args);
-        }
-      }
-    }
+        };
+      },
+    };
 
     return new Proxy({}, handler);
   }
@@ -46,7 +54,9 @@ export class HTTPClient {
     method: string,
     params?: StructuredParamsType
   ): Promise<T> {
-    const response = await this.httpRequest(requestFactory(method, params, 1));
+    const response = await this.sendHTTPRequest(
+      requestFactory(method, params, 1)
+    );
     if (response.error) {
       throw new JSONRPCException(response.error);
     }
@@ -57,7 +67,7 @@ export class HTTPClient {
     method: string,
     params?: StructuredParamsType
   ): Promise<void> {
-    await this.httpRequest(requestFactory(method, params));
+    await this.sendHTTPRequest(requestFactory(method, params));
   }
 
   public async batch(
@@ -66,10 +76,10 @@ export class HTTPClient {
     const batchRequest = requests.map(({ method, params, notify }, id) =>
       requestFactory(method, params, notify ? undefined : id + 1)
     );
-    const response = await this.httpRequest(batchRequest);
+    const response = await this.sendHTTPRequest(batchRequest);
     if (Array.isArray(response)) {
-      return response.map((val: any) =>
-        val.error ? { error: val.error } : { result: val.result }
+      return response.map(({ error, result }) =>
+        error ? { error } : { result }
       );
     }
   }
