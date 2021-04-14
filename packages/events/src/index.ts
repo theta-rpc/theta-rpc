@@ -16,7 +16,7 @@ export class EventEmitter<
     return new Promise((resolve, reject) => {
       //FIXME
       //@ts-ignore
-      this.on(event, (...args: any[]) => {
+      this.once(event, (...args: any[]) => {
         resolve(args);
         emitted = true;
       });
