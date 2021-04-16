@@ -50,6 +50,7 @@
     "typescript": "^3.9.3"
   },
   "dependencies": {
+    "@theta-rpc/events": "^1.2.2",
     "@theta-rpc/json-rpc": "^1.2.2",
     "axios": "^0.21.1",
     "debug": "^4.3.1"

@@ -3,30 +3,34 @@ import createDebug from "debug";
 import {
   StructuredParamsType,
   requestFactory,
-  JSONRPCException,
+  JSONRPCException
 } from "@theta-rpc/json-rpc";
-import { RequestType, ResponseType } from "./types";
+import { RequestType, ResponseType, HTTPClientEventsType } from "./types";
+import { EventEmitter } from '@theta-rpc/events';
 
 const debug = createDebug("THETA-RPC:HTTP-CLIENT");
 
-export class HTTPClient {
+export class HTTPClient extends EventEmitter<HTTPClientEventsType> {
   private client: AxiosInstance;
   private headers: any = {};
 
   constructor(connectionURL: string);
   constructor(axiosInstance: AxiosInstance);
   constructor(arg: string | AxiosInstance) {
+    super();
     this.client =
       typeof arg === "string" ? axios.create({ baseURL: arg }) : arg;
   }
 
   private async sendHTTPRequest(request: any) {
+    this.emit('request', request);
     debug("-> %o", request);
     const response = (
       await this.client.post("/", request, {
         headers: { "Content-Type": "application/json", ...this.headers },
       })
     ).data;
+    this.emit('response', response);
     debug("<- %o", response);
     return response;
   }
