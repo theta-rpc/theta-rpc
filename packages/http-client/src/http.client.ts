@@ -22,6 +22,10 @@ export class HTTPClient extends EventEmitter<HTTPClientEventsType> {
       typeof arg === "string" ? axios.create({ baseURL: arg }) : arg;
   }
 
+  public static attach(client: AxiosInstance): HTTPClient {
+    return new HTTPClient(client);
+  }
+
   private async sendHTTPRequest(request: any) {
     this.emit('request', request);
     debug("-> %o", request);
