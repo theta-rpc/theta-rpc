@@ -2,7 +2,6 @@ import createDebug from "debug";
 import { Container } from "./container";
 import { ConstructorType } from "../types";
 import { MethodObjectType, AccessorType } from "./types";
-import { isProtected, getMetadata } from "../decorators/utils";
 
 const debug = createDebug("THETA-RPC");
 const INTERNAL_METHOD_REGEXP = /rpc.\w+/g;
