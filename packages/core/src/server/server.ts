@@ -12,7 +12,7 @@ import { Composer } from "../transport/composer";
 import { Executor } from "../method/executor";
 import { RequestContext } from "./request-context";
 import { TransportContext } from "../transport/transport-context";
-import { RequestContextType } from "./types";
+import { RequestContextType, ServerOptionsType } from "./types";
 
 const debug = createDebug("THETA-RPC");
 
@@ -21,7 +21,11 @@ type InternalResponseType =
   | (ResponseObjectType | undefined)[];
 
 export class Server {
-  constructor(private composer: Composer, private executor: Executor) {}
+  private composer = new Composer();
+
+  constructor(private executor: Executor, private options: ServerOptionsType) {
+    this.composer.load(options.transports);
+  }
 
   private async processRequest(
     request: any,

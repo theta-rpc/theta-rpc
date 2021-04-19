@@ -27,10 +27,6 @@ export class Composer {
     }
   }
 
-  public clearInstances() {
-    this.transports = [];
-  }
-
   private sign() {
     const str = Math.floor(Math.random() * Math.pow(16, 6)).toString(16);
     return "0".repeat(6 - str.length) + str;

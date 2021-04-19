@@ -1,12 +1,10 @@
-import { ThetaTransport } from '@theta-rpc/transport';
+import { ServerOptionsType } from './server';
 
 export type ConstructorType<T = any> = {
   new(...args: any[]): T
 }
 
 export type ApplicationOptionsType = {
-  server: {
-    transports: ThetaTransport[];
-  };
+  server: ServerOptionsType
   methods: ConstructorType<any>[];
 };

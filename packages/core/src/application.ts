@@ -10,25 +10,18 @@ export class Application {
   private container = new Container();
   private explorer = new Explorer(this.container);
   private executor = new Executor(this.container);
-  private composer = new Composer();
-  private server = new Server(this.composer, this.executor);
+  private server = new Server(this.executor, this.options.server);
 
   constructor(private options: ApplicationOptionsType) { }
 
   public start(callback?: (error?: Error) => void) {
     debug("Starting the application..");
-    this.composer.load(this.options.server.transports);
     this.explorer.explore([RPCExtension], true);
     this.explorer.explore([...(this.options.methods || [])]);
     this.server.start(callback);
   }
 
-  public stop(callback?: (error?: Error) => void, clear: boolean = false) {
-    if (clear) {
-      this.composer.clearInstances();
-      this.container.clear();
-    }
-
+  public stop(callback?: (error?: Error) => void) {
     this.server.shutdown(callback);
   }
 }
