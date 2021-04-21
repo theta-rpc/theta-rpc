@@ -1,55 +1,38 @@
 import createDebug from "debug";
 import { Container } from "./container";
-import { ConstructorType } from "../types";
-import { MethodObjectType, AccessorType } from "./types";
+import { AccessorType, HandlerType } from "./types";
 
 const debug = createDebug("THETA-RPC");
-const INTERNAL_METHOD_REGEXP = /rpc.\w+/g;
 
 export class Explorer {
+  private internalMode = false;
   constructor(private container: Container) {}
 
-  private tryStoreMethod(method: MethodObjectType) {
-    if (this.container.exists(method.method)) {
-      return;
-    }
-    this.container.add(method);
+  public enableInternalMode() {
+    this.internalMode = true;
+  }
+
+  public disableInternalMode() {
+    this.internalMode = false;
   }
 
   public explore(
-    constructors: ConstructorType[],
-    internal: boolean = false
-  ): void {
-    for (const constructor of constructors) {
-      debug("Exploring: %s", constructor.name);
-      const instance = new constructor();
-      const instanceMethods = Object.getOwnPropertyNames(constructor.prototype);
-      let accessors: AccessorType[] = [];
-
-      if (isProtected(constructor)) {
-        accessors = getMetadata(constructor).accessors;
-      }
-
-      for (const method of instanceMethods) {
-        if (
-          typeof method !== "string" ||
-          method === "constructor" ||
-          (!internal && INTERNAL_METHOD_REGEXP.test(method))
-        ) {
-          continue;
-        }
-
-        if (isProtected(instance[method])) {
-          accessors = accessors.concat(getMetadata(instance[method]).accessors);
-        }
-
-        this.tryStoreMethod({
-          method,
-          handler: instance[method].bind(instance),
-          accessors,
-        });
-        debug(" %s", method);
-      }
+    method: string,
+    accessors: AccessorType[],
+    handler: HandlerType
+  ): boolean {
+    if(!this.internalMode && /rpc.\w+/g.test(method)) {
+      debug('Method names that begin with \'rpc.\' are reserved for internal methods')
+      return false;
     }
+
+    if(this.container.exists(method)) {
+      debug('Method: \'%s\' already exists', method);
+      return false;
+    }
+
+    this.container.add({ method, accessors, handler });
+    debug('Explored: %s', method);
+    return true;
   }
 }

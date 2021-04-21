@@ -6,5 +6,4 @@ export type ConstructorType<T = any> = {
 
 export type ApplicationOptionsType = {
   server: ServerOptionsType
-  methods: ConstructorType<any>[];
 };

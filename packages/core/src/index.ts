@@ -1,3 +1,3 @@
-export { createApplication } from './application';
+export { createApplication, Application } from './application';
 export { RequestContextType } from './server';
 export { AccessorType } from './method';
