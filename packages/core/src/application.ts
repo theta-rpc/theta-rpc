@@ -40,11 +40,11 @@ export class Application {
 
   public start(callback?: (error?: Error) => void) {
     debug("Starting the application");
-    this.server.start(callback);
+    this.server.start().then(callback).catch(callback);
   }
 
   public stop(callback?: (error?: Error) => void) {
-    this.server.shutdown(callback);
+    this.server.shutdown().then(callback).catch(callback);
   }
 }
 

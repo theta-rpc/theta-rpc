@@ -131,17 +131,12 @@ export class Server {
     );
   }
 
-  public start(callback?: (e?: Error) => any) {
-    this.composer.onRequest(this.processRequest.bind(this));
-    this.composer
-      .start()
-      .then(() => {
-        if (callback) callback();
-      })
-      .catch(callback);
+  public start(): Promise<any> {
+    this.composer.onRequest((data, transportContext) => this.processRequest(data, transportContext));
+    return this.composer.start();
   }
 
-  public shutdown(callback?: (e?: Error) => any) {
-    this.composer.stop().then(callback).catch(callback);
+  public shutdown(): Promise<any> {
+    return this.composer.stop();
   }
 }
