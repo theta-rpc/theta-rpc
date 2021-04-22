@@ -4,7 +4,6 @@ import {
   NoAccessToMethodException,
   MethodNotFoundException,
   InternalErrorException,
-  ResponseObjectType,
   successResponseFactory,
   errorResponseFactory,
 } from "@theta-rpc/json-rpc";
@@ -17,7 +16,7 @@ const errorDebug = createDebug("THETA-RPC:ERROR");
 export class Executor {
   constructor(private container: Container) {}
 
-  private async canAccess(
+  private async executeEachAccessor(
     accessors: AccessorType[],
     requestContext: RequestContextType
   ): Promise<void> {
@@ -28,34 +27,31 @@ export class Executor {
     }
   }
 
-  private tryGetMethod(method: string) {
-    if (this.container.exists(method)) {
-      return this.container.get(method)!;
+  public tryGetMethod(name: string) {
+    if (this.container.exists(name)) {
+      return this.container.get(name)!;
     }
 
     throw new MethodNotFoundException();
   }
 
-  private isTrustedException(e: Error) {
-    return e instanceof JSONRPCException;
-  }
-
   public async execute(
-    methodName: string,
+    name: string,
     requestContext: RequestContextType
-  ): Promise<ResponseObjectType> {
+  ): Promise<any> {
     try {
-      const method = this.tryGetMethod(methodName);
-      await this.canAccess(method.accessors, requestContext);
+      const method = this.tryGetMethod(name);
+      await this.executeEachAccessor(method.accessors, requestContext);
       const rawResult = await method.handler(requestContext);
       return successResponseFactory(
         rawResult === undefined ? "" : rawResult,
         requestContext.id
       );
     } catch (e) {
-      if (this.isTrustedException(e)) {
-        return errorResponseFactory(e, requestContext.id);
+      if (e instanceof JSONRPCException) {
+        return errorResponseFactory(e);
       }
+
       errorDebug(e);
       return errorResponseFactory(
         new InternalErrorException(),
