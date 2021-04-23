@@ -49,7 +49,7 @@ export class Executor {
       );
     } catch (e) {
       if (e instanceof JSONRPCException) {
-        return errorResponseFactory(e);
+        return errorResponseFactory(e, requestContext.id);
       }
 
       errorDebug(e);
