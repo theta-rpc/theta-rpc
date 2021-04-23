@@ -8,10 +8,10 @@ export class RequestContext implements RequestContextType {
     public readonly params: StructuredParamsType | undefined,
     public readonly isNotification: boolean,
     public readonly inBatchScope: boolean,
-    private readonly transportContext: any
+    private readonly _transportContext: any
   ) { }
 
-  public transportLayer(): any {
-    return this.transportContext;
+  public transportContext(): any {
+    return this._transportContext;
   }
 }

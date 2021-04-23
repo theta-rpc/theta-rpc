@@ -8,7 +8,7 @@ export type RequestContextType<TParams = StructuredParamsType> = {
   readonly isNotification: boolean;
   readonly inBatchScope: boolean;
 
-  transportLayer<T = any>(): T | undefined;
+  transportContext<T = any>(): T | undefined;
 }
 
 export type ServerOptionsType = {
