@@ -28,14 +28,14 @@ export class HTTPClient extends EventEmitter<HTTPClientEventsType> {
 
   private async sendHTTPRequest(request: any) {
     this.emit("request", request);
-    debug("-> %o", request);
+    debug("<- %o", request);
     const response = (
       await this.client.post("/", request, {
         headers: { "Content-Type": "application/json", ...this.headers },
       })
     ).data;
     this.emit("response", response);
-    debug("<- %o", response);
+    debug("-> %o", response);
     return response;
   }
 
