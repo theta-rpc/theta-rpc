@@ -23,8 +23,9 @@ type InternalResponseType =
 export class Server {
   private composer = new Composer();
 
-  constructor(private executor: Executor, private options: ServerOptionsType) {
+  constructor(private executor: Executor, options: ServerOptionsType) {
     this.composer.load(options.transports);
+    this.composer.onRequest((data, transportContext) => this.processRequest(data, transportContext));
   }
 
   private async processRequest(
@@ -132,7 +133,6 @@ export class Server {
   }
 
   public start(): Promise<any> {
-    this.composer.onRequest((data, transportContext) => this.processRequest(data, transportContext));
     return this.composer.start();
   }
 

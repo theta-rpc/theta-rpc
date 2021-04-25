@@ -25,7 +25,6 @@ export class Composer {
   public onRequest(callback: (data: any, transportContext: any) => any): void {
     this.transports.map(({ instance, signature }) => {
       instance.on('message', (data, transportContext) => {
-        console.log(data);
         requestDebug('[%s@%s] -> %o', instance.name, getSymbolDescr(signature), data);
         const context = new TransportContext(transportContext, signature)
         callback(data, context);
