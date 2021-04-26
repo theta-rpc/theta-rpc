@@ -44,9 +44,9 @@ export class Server {
       } else {
         response = await this.callMethod(data, transportContext, false);
       }
-      await this.respond(response, transportContext);
+      this.respond(response, transportContext);
     } catch (e) {
-      await this.respond(errorResponseFactory(e), transportContext);
+      this.respond(errorResponseFactory(e), transportContext);
     }
   }
 
@@ -73,18 +73,18 @@ export class Server {
     throw new BadTransportDataException();
   }
 
-  private async respond(
+  private respond(
     response: InternalResponseType,
     transportContext: TransportContext
-  ): Promise<void> {
+  ): void {
     const sanitizedResponse = this.sanitizeResponse(response);
 
     if (sanitizedResponse) {
-      await this.composer.respond(sanitizedResponse, transportContext);
+      this.composer.respond(sanitizedResponse, transportContext);
       return;
     }
 
-    await this.composer.respond(undefined, transportContext);
+    this.composer.respond(undefined, transportContext);
   }
 
   private async callMethod(
