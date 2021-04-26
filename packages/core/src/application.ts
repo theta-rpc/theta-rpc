@@ -12,13 +12,17 @@ import {
 const debug = createDebug("THETA-RPC");
 
 export class Application {
-  private container = new Container();
-  private explorer = new Explorer(this.container);
-  private executor = new Executor(this.container);
-  private server = new Server(this.executor, this.options.server);
+  private container: Container;
+  private explorer: Explorer;
+  private executor: Executor;
+  private server: Server;
 
   constructor(private options: ApplicationOptionsType) {
     debug('Creating an application');
+    this.container = new Container();
+    this.explorer = new Explorer(this.container);
+    this.executor = new Executor(this.container);
+    this.server = new Server(this.executor, this.options.server);
     this.exposeInternalMethods();
   }
 
