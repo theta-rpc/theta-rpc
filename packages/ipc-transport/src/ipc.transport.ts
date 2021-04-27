@@ -1,8 +1,11 @@
 import net from 'net';
 import NodeIPC from 'node-ipc';
+import createDebug from 'debug';
 import { ThetaTransport } from '@theta-rpc/transport';
 import { IIPCTransportContext, IPCTransportOptionsType } from './interfaces';
 import { IPCTransportContext } from './ipc.transport-context';
+
+const debug = createDebug('THETA-RPC:IPC-TRANSPORT');
 
 export class IPCTransport  extends ThetaTransport {
   private readonly ipc = new NodeIPC.IPC();
@@ -38,6 +41,7 @@ export class IPCTransport  extends ThetaTransport {
       const context = this.createContext(socket);
       this.emit('message', data, context);
     });
+    this.ipc.server.on('error', (err) => debug(err));
   }
 
   private createContext(socket: net.Socket): IPCTransportContext {
