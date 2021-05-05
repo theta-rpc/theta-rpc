@@ -1,31 +1,38 @@
 import createDebug from "debug";
 import http from "http";
+import https from "https";
 import express from "express";
 import corsMiddleware from "cors";
 
 import { ThetaTransport } from "@theta-rpc/transport";
 
-import { IHTTPTransportOptions, IHTTPTransportContext } from "./interfaces";
+import {
+  HTTPTransportOptionsType,
+  HTTPTransportContextType,
+  CommonOptionsType,
+} from "./types";
 import { HTTPTransportContext } from "./http.transport-context";
 
 const debug = createDebug("THETA-RPC:HTTP-TRANSPORT");
 
 export class HTTPTransport extends ThetaTransport {
-  private httpServer!: http.Server;
+  private server!: http.Server | https.Server;
   private express!: express.Application;
 
-  constructor(public options: IHTTPTransportOptions) {
+  constructor(public options: HTTPTransportOptionsType) {
     super("HTTP transport");
 
-    let expressInstance: express.Application;
+    const expressInstance = options.express ? options.express : express();
 
-    if (options.express) {
-      expressInstance = options.express;
-    } else {
-      expressInstance = express();
-      this.httpServer = http.createServer(expressInstance);
-      expressInstance.disable("x-powered-by");
+    if (!options.http && !options.https && !options.express) {
+      throw new Error();
     }
+
+    this.server = options.http
+      ? http.createServer(options.http, expressInstance)
+      : https.createServer(options.https!, expressInstance);
+    
+    expressInstance.disable("x-powered-by");
 
     this.express = expressInstance;
     this.registerRoute();
@@ -34,7 +41,15 @@ export class HTTPTransport extends ThetaTransport {
   }
 
   public static attach(express: express.Application) {
-    return new HTTPTransport({ express })
+    return new HTTPTransport({ express });
+  }
+
+  public static http(options: CommonOptionsType & http.ServerOptions) {
+    return new HTTPTransport({ http: options });
+  }
+
+  public static https(options: CommonOptionsType & https.ServerOptions) {
+    return new HTTPTransport({ https: options });
   }
 
   private listen() {
@@ -44,20 +59,23 @@ export class HTTPTransport extends ThetaTransport {
   }
 
   public registerRoute() {
+    const options = (this.options.http ||
+      this.options.https) as CommonOptionsType;
+
     const middlewares: any[] = [
       express.raw({
-        limit: this.options.bodyLimit,
+        limit: options.bodySize,
         type: "application/json",
       }),
     ];
 
     /* istanbul ignore else */
-    if (this.options.cors) {
-      middlewares.push(corsMiddleware(this.options.cors));
+    if (options.cors) {
+      middlewares.push(corsMiddleware(options.cors));
     }
 
     this.express.post(
-      this.options.path || "/",
+      options.path || "/",
       middlewares,
       (request: express.Request, response: express.Response) => {
         const context = this.createContext(request, response);
@@ -66,7 +84,7 @@ export class HTTPTransport extends ThetaTransport {
     );
   }
 
-  public reply(data: any, context: IHTTPTransportContext) {
+  public reply(data: any, context: HTTPTransportContextType) {
     const response = context.getResponse();
     /* istanbul ignore next */
     if (!response.writableEnded) {
@@ -80,9 +98,9 @@ export class HTTPTransport extends ThetaTransport {
   }
 
   public handleErrors() {
-    if(!this.options.express) {
+    if (!this.options.express) {
       /* istanbul ignore next */
-      this.httpServer.on("error", (error) => {
+      this.server.on("error", (error) => {
         debug(error);
       });
     }
@@ -93,20 +111,18 @@ export class HTTPTransport extends ThetaTransport {
   }
 
   public start() {
-    const { hostname, port, express } = this.options;
-    if(express) return;
+    if (this.options.express) return;
+    const { hostname, port } = (this.options.http ||
+      this.options.https) as CommonOptionsType;
     if (port) {
-      this.httpServer
-      .listen(port, hostname, () => this.emit("started"))
+      this.server.listen(port, hostname, () => this.emit("started"));
     }
   }
 
   public stop() {
-    if (this.options.express) {
-      return;
-    }
-    this.httpServer.close((err) => {
-      if(!err) return this.emit("stopped");                     
+    if (this.options.express) return;
+    this.server.close((err) => {
+      if (!err) return this.emit("stopped");
     });
   }
 }
