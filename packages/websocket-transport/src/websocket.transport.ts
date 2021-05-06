@@ -24,26 +24,13 @@ export class WebSocketTransport extends ThetaTransport {
     this.httpServer = httpServer;
     this.wss = wss;
     this.handleErrors();
-    this.listen();
-    this.listenConnection();
+    this.listenEvents();
   }
 
-  private listen() {
+  private listenEvents() {
     this.on("start", () => this.start());
     this.on("stop", () => this.stop());
     this.on("reply", (data, context) => this.reply(data, context));
-  }
-
-  public reply(data: any, transportContext: IWebSocketTransportContext) {
-    const connection = transportContext.getConnection();
-    if (data) {
-      connection.send(JSON.stringify(data), (err?: Error) => {
-        if(error) debug(error);
-      });
-    }
-  }
-
-  public listenConnection() {
     this.wss.on("connection", (socket) => {
       socket.on("message", (data) => {
         const context = this.createContext(socket);
@@ -52,9 +39,18 @@ export class WebSocketTransport extends ThetaTransport {
     });
   }
 
+  public reply(data: any, transportContext: IWebSocketTransportContext) {
+    const connection = transportContext.getConnection();
+    if (data) {
+      connection.send(JSON.stringify(data), (err?: Error) => {
+        if(err) debug(err);
+      });
+    }
+  }
+
   private handleErrors() {
     this.wss.on("error", (err?: Error) => {
-      debug(error);
+      debug(err);
     });
   }
 
