@@ -1,18 +1,19 @@
 import { HTTPTransportContextType } from './types';
-import { Request, Response } from 'express';
+import { FastifyRequest, FastifyReply, RawServerBase } from 'fastify';
 
-export class HTTPTransportContext implements HTTPTransportContextType {
+export class HTTPTransportContext<RawServer extends RawServerBase>
+  implements HTTPTransportContextType<RawServer> {
   constructor(
-    private request: Request,
-    private response: Response
-  ) { }
+    private request: FastifyRequest<any, RawServer>,
+    private reply: FastifyReply<RawServer>
+  ) {}
 
   /* istanbul ignore next */
   public getRequest() {
     return this.request;
   }
 
-  public getResponse() {
-    return this.response;
+  public getReply() {
+    return this.reply;
   }
 }
