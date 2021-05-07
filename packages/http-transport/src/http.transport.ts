@@ -1,11 +1,15 @@
 import createDebug from "debug";
 import http from "http";
 import https from "https";
-import express from "express";
-import corsMiddleware from "cors";
-
 import { ThetaTransport } from "@theta-rpc/transport";
-
+import { RouteGenericInterface } from "fastify/types/route";
+import createFastifyApplication, {
+  FastifyInstance,
+  FastifyReply,
+  FastifyRequest,
+  RawServerBase,
+  RawServerDefault,
+} from "fastify";
 import {
   HTTPTransportOptionsType,
   HTTPTransportContextType,
@@ -15,33 +19,37 @@ import { HTTPTransportContext } from "./http.transport-context";
 
 const debug = createDebug("THETA-RPC:HTTP-TRANSPORT");
 
-export class HTTPTransport extends ThetaTransport {
-  private server!: http.Server | https.Server;
-  private express!: express.Application;
+export class HTTPTransport<
+  RawServer extends RawServerBase = RawServerDefault
+> extends ThetaTransport {
+  private readonly server: FastifyInstance<RawServer>;
 
-  constructor(public options: HTTPTransportOptionsType) {
+  constructor(private options?: HTTPTransportOptionsType<RawServer>) {
     super("HTTP transport");
 
-    const expressInstance = options.express ? options.express : express();
-
-    if (!options.http && !options.https && !options.express) {
-      throw new Error();
+    if (!options || (!options.attach && !options.http && !options.https)) {
+      throw new Error('One of "attach", "http", "https" must be provided');
     }
 
-    this.server = options.http
-      ? http.createServer(options.http, expressInstance)
-      : https.createServer(options.https!, expressInstance);
-    
-    expressInstance.disable("x-powered-by");
+    let serverOptions = {};
 
-    this.express = expressInstance;
+    if (options.https) {
+      serverOptions = { https: options.https };
+    }
+
+    this.server = createFastifyApplication(serverOptions) as any;
+
+    this.listenEvents();
     this.registerRoute();
-    this.listen();
     this.handleErrors();
+    this.overwriteJSONParser();
+    this.setNotFoundHandler();
   }
 
-  public static attach(express: express.Application) {
-    return new HTTPTransport({ express });
+  public static attach<T extends RawServerBase>(
+    application: FastifyInstance<T>
+  ) {
+    return new HTTPTransport<T>({ attach: application });
   }
 
   public static http(options: CommonOptionsType & http.ServerOptions) {
@@ -49,80 +57,102 @@ export class HTTPTransport extends ThetaTransport {
   }
 
   public static https(options: CommonOptionsType & https.ServerOptions) {
-    return new HTTPTransport({ https: options });
+    return new HTTPTransport<https.Server>({ https: options });
   }
 
-  private listen() {
+  private getCommonOptions() {
+    return (this.options!.http || this.options!.https) as CommonOptionsType;
+  }
+
+  private listenEvents() {
     this.on("reply", (data, context) => this.reply(data, context));
     this.on("start", () => this.start());
     this.on("stop", () => this.stop());
   }
 
+  private overwriteJSONParser() {
+    this.server.addContentTypeParser(
+      "application/json",
+      { parseAs: "string" },
+      (request, payload, done) => {
+        done(null, payload);
+      }
+    );
+  }
+
   public registerRoute() {
-    const options = (this.options.http ||
-      this.options.https) as CommonOptionsType;
+    const options = this.getCommonOptions();
 
-    const middlewares: any[] = [
-      express.raw({
-        limit: options.bodySize,
-        type: "application/json",
-      }),
-    ];
-
-    /* istanbul ignore else */
-    if (options.cors) {
-      middlewares.push(corsMiddleware(options.cors));
-    }
-
-    this.express.post(
+    this.server.post(
       options.path || "/",
-      middlewares,
-      (request: express.Request, response: express.Response) => {
-        const context = this.createContext(request, response);
+      {
+        preHandler: (request, reply, done) => {
+          if (request.headers["content-type"] !== "application/json") {
+            request.body = "";
+          }
+          done();
+        },
+      },
+      (request, reply) => {
+        const context = this.createContext(request, reply);
         this.emit("message", request.body, context);
       }
     );
   }
 
-  public reply(data: any, context: HTTPTransportContextType) {
-    const response = context.getResponse();
-    /* istanbul ignore next */
-    if (!response.writableEnded) {
-      if (!data) {
-        return response.status(204).end();
-      }
-
-      response.set("Content-Type", "application/json");
-      response.send(data);
-    }
-  }
-
-  public handleErrors() {
-    if (!this.options.express) {
-      /* istanbul ignore next */
-      this.server.on("error", (error) => {
-        debug(error);
+  private setNotFoundHandler() {
+    if (!this.options!.attach) {
+      this.server.setNotFoundHandler((request, reply) => {
+        reply.status(404).send();
       });
     }
   }
 
-  public createContext(request: express.Request, response: express.Response) {
-    return new HTTPTransportContext(request, response);
+  private handleErrors() {
+    if (!this.options!.attach) {
+      this.server.setErrorHandler((error, request, reply) => {
+        debug(error);
+        reply.status(400).send();
+      });
+    }
+  }
+
+  public reply(data: any, context: HTTPTransportContextType<RawServer>) {
+    const reply = context.getReply();
+    if (!reply.sent) {
+      if (!data) {
+        reply.status(204).send();
+        return;
+      }
+
+      reply.header("Content-Type", "application/json");
+      reply.send(JSON.stringify(data));
+    }
+  }
+
+
+  public createContext(
+    request: FastifyRequest<RouteGenericInterface, RawServer>,
+    reply: FastifyReply<RawServer>
+  ) {
+    return new HTTPTransportContext(request, reply);
   }
 
   public start() {
-    if (this.options.express) return;
-    const { hostname, port } = (this.options.http ||
-      this.options.https) as CommonOptionsType;
-    if (port) {
-      this.server.listen(port, hostname, () => this.emit("started"));
+    const { hostname, port } = this.getCommonOptions();
+
+    if (!this.options!.attach) {
+      this.server
+        .listen(port, hostname)
+        .then(() => this.emit("started"))
+        .catch(debug);
     }
   }
 
   public stop() {
-    if (this.options.express) return;
-    this.server.close((err) => {
-      if (!err) return this.emit("stopped");
-    });
+    if (!this.options!.attach) {
+      this.server.close().then(() => this.emit("stopped"), debug);
+      return;
+    }
   }
 }
