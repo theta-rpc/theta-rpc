@@ -1,5 +1,4 @@
 import https from 'https';
-import http2 from 'http2';
 import {
   FastifyInstance,
   FastifyReply,
@@ -13,16 +12,12 @@ export type HTTPTransportContextType<RawServer extends RawServerBase> = {
 };
 
 export type CommonOptionsType = {
-  hostname?: string,
-  port: number,
+  host?: string,
+  port?: number
   path?: string,
-  bodyLimit?: string
 }
 
 export type HTTPTransportOptionsType<RawServer extends RawServerBase> = {
   attach?: FastifyInstance<RawServer>;
-  http?: CommonOptionsType;
-  https?: CommonOptionsType & https.ServerOptions;
-  http2?: CommonOptionsType & http2.ServerOptions;
-  http2s?: CommonOptionsType & http2.SecureServerOptions;
-};
+  https?: https.ServerOptions;
+} & CommonOptionsType;
