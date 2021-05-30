@@ -54,6 +54,31 @@ export class HTTPTransport<
     });
   }
 
+  // Should we rename the method to something like "http2" ?
+  public static h2c(
+    options: CommonOptions & http2.ServerOptions
+  ): HTTPTransport<http2.Http2Server> {
+    const { hostname, port, path } = options;
+    return new HTTPTransport<http2.Http2Server>({
+      hostname,
+      port,
+      path,
+      fastifyOptions: { http2: true },
+    });
+  }
+
+  public static h2(
+    options: CommonOptions & http2.SecureServerOptions
+  ): HTTPTransport<http2.Http2SecureServer> {
+    const { hostname, port, path, ...httpsOptions } = options;
+    return new HTTPTransport<http2.Http2SecureServer>({
+      hostname,
+      port,
+      path,
+      fastifyOptions: { http2: true, https: httpsOptions },
+    });
+  }
+
   public static attach<T extends RawServerBase>(
     instance: FastifyInstance<T>,
     path?: string
