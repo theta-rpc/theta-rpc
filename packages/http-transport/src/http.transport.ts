@@ -1,43 +1,35 @@
 import createDebug from "debug";
 import https from "https";
+import http2 from 'http2';
 import { ThetaTransport } from "@theta-rpc/transport";
-import { RouteGenericInterface } from "fastify/types/route";
+import { createHTTPContext } from "./http.context";
 import createFastifyApplication, {
   FastifyInstance,
-  FastifyReply,
-  FastifyRequest,
-  RawServerBase,
-  RawServerDefault,
+  RawServerBase
 } from "fastify";
 import {
-  HTTPTransportOptionsType,
-  HTTPTransportContextType,
-  CommonOptionsType,
+  HTTPTransportOptions,
+  HTTPContext,
+  CommonOptions,
 } from "./types";
-import { HTTPTransportContext } from "./http.transport-context";
 
 const debug = createDebug("THETA-RPC:HTTP-TRANSPORT");
 
 export class HTTPTransport<
-  RawServer extends RawServerBase = RawServerDefault
+  RawServer extends RawServerBase = RawServerBase
 > extends ThetaTransport {
-  private readonly server: FastifyInstance<RawServer>;
-  private kDefaultPath = '/';
-  private kDefaultPort = 3000;
-  private isStarted = false;
 
-  constructor(private options: HTTPTransportOptionsType<RawServer> = {}) {
+  private readonly kServer: FastifyInstance<RawServer>;
+  private readonly kDefaultPath = "/";
+  private readonly kDefaultPort = 3000;
+  private isRunning = false;
+
+  constructor(private options: HTTPTransportOptions<RawServer>) {
     super("HTTP transport");
 
-    let serverOptions = {};
-
-    if(options.https) {
-      serverOptions = { https: options.https }
-    }
-
-    this.server = options.attach
+    this.kServer = options.attach
       ? options.attach
-      : (createFastifyApplication(serverOptions) as any);
+      : (createFastifyApplication(options.fastifyOptions) as any);
 
     this.listenEvents();
     this.handleErrors();
@@ -46,23 +38,27 @@ export class HTTPTransport<
     this.overwriteNotFoundHandler();
   }
 
-  private static commonOpts(options: CommonOptionsType): CommonOptionsType {
-    return { host: options.host, port: options.port, path: options.path };
+  public static http(options: CommonOptions): HTTPTransport {
+    return new HTTPTransport(options);
   }
 
-  public static attach<T extends RawServerBase>(instance: FastifyInstance<T>) {
-    return new HTTPTransport<T>({ attach: instance });
-  }
-
-  public static http(options: CommonOptionsType) {
-    return new HTTPTransport({ ...this.commonOpts(options) });
-  }
-
-  public static https(options: CommonOptionsType & https.ServerOptions) {
+  public static https(
+    options: CommonOptions & https.ServerOptions
+  ): HTTPTransport<https.Server> {
+    const { hostname, port, path, ...httpsOptions } = options;
     return new HTTPTransport<https.Server>({
-      ...this.commonOpts(options),
-      https: options,
+      hostname,
+      port,
+      path,
+      fastifyOptions: { https: httpsOptions },
     });
+  }
+
+  public static attach<T extends RawServerBase>(
+    instance: FastifyInstance<T>,
+    path?: string
+  ): HTTPTransport<T> {
+    return new HTTPTransport<T>({ attach: instance, path });
   }
 
   private listenEvents() {
@@ -73,7 +69,7 @@ export class HTTPTransport<
 
   private overwriteContentTypeParser() {
     if (!this.options.attach) {
-      this.server.addContentTypeParser(
+      this.kServer.addContentTypeParser(
         "application/json",
         { parseAs: "string" },
         (request, payload, done) => {
@@ -85,14 +81,14 @@ export class HTTPTransport<
 
   private overwriteNotFoundHandler() {
     if (!this.options.attach) {
-      this.server.setNotFoundHandler((request, reply) => {
+      this.kServer.setNotFoundHandler((request, reply) => {
         reply.status(404).send();
       });
     }
   }
 
   private registerRoute() {
-    this.server.post(
+    this.kServer.post(
       this.options.path || this.kDefaultPath,
       {
         preHandler: (request, reply, done) => {
@@ -104,7 +100,7 @@ export class HTTPTransport<
         },
       },
       (request, reply) => {
-        const context = this.createContext(request, reply);
+        const context = createHTTPContext(request, reply);
         this.emit("message", request.body, context);
       }
     );
@@ -112,14 +108,14 @@ export class HTTPTransport<
 
   private handleErrors() {
     if (!this.options.attach) {
-      this.server.setErrorHandler((error, request, reply) => {
+      this.kServer.setErrorHandler((error, request, reply) => {
         debug(error);
         reply.status(400).send();
       });
     }
   }
 
-  private reply(data: any, context: HTTPTransportContextType<RawServer>) {
+  private reply(data: unknown, context: HTTPContext<RawServer>) {
     const reply = context.getReply();
     if (!reply.sent) {
       if (!data) {
@@ -132,37 +128,35 @@ export class HTTPTransport<
     }
   }
 
-  private createContext(
-    request: FastifyRequest<RouteGenericInterface, RawServer>,
-    reply: FastifyReply<RawServer>
-  ) {
-    return new HTTPTransportContext(request, reply);
-  }
-
   private start() {
-    if(this.isStarted) throw new Error('The transport is already started');
+    if (this.isRunning) {
+      debug("The transport is already running");
+      return;
+    }
 
-    const { host, port } = this.options;
+    const { hostname, port } = this.options;
     if (!this.options.attach) {
-      this.server
-        .listen(port || this.kDefaultPort, host)
+      this.kServer
+        .listen(port || this.kDefaultPort, hostname)
         .then(() => {
           this.emit("started");
-          this.isStarted = true;
+          this.isRunning = true;
         })
         .catch(debug);
     }
   }
 
   private stop() {
-    if(!this.isStarted) throw new Error("The transport is already stopped")
+    if (!this.isRunning) {
+      debug("The transport is not running");
+      return;
+    }
 
     if (!this.options.attach) {
-      this.server.close().then(() => {
+      this.kServer.close().then(() => {
         this.emit("stopped");
-        this.isStarted = false;
+        this.isRunning = false;
       }, debug);
-      return;
     }
   }
 }
