@@ -1,9 +1,9 @@
-import { ServerOptionsType } from './server';
+import { AccessorType, HandlerType } from './method';
 
-export type ConstructorType<T = any> = {
-  new(...args: any[]): T
+export interface Application {
+  expose(method: string, handler: HandlerType): boolean;
+  expose(method: string, accessors: AccessorType[], handler: HandlerType): boolean;
+
+  start(callback?: (error?: Error) => void): void;
+  stop(callback?: (error?: Error) => void): void;
 }
-
-export type ApplicationOptionsType = {
-  server: ServerOptionsType
-};

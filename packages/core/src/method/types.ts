@@ -1,10 +1,10 @@
-import { RequestContextType } from '../server';
+import { RequestContext } from '../server';
 
-export type AccessorType = (context: RequestContextType) => Promise<boolean> | boolean;
-export type HandlerType = (context: RequestContextType<any>) => any;
+export type AccessorType = (context: RequestContext) => Promise<boolean> | boolean;
+export type HandlerType = (context: RequestContext) => unknown;
 
 export type MethodObjectType = {
   method: string,
-  handler: (context: RequestContextType) => any,
+  handler: (context: RequestContext) => unknown,
   accessors: AccessorType[]
 }

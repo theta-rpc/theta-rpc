@@ -1,3 +1,3 @@
 export class TransportContext {
-  constructor(public context: any, public signature: Symbol) { }
+  constructor(public context: unknown, public signature: Symbol) { }
 }

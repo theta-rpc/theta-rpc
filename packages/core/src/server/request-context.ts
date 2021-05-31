@@ -1,7 +1,7 @@
-import { RequestContextType } from "./types";
-import { StructuredParamsType, RequestIDType } from '@theta-rpc/json-rpc';
+import { RequestContext } from "./types";
+import { StructuredParamsType, RequestIDType } from "@theta-rpc/json-rpc";
 
-export class RequestContext implements RequestContextType {
+export class RequestContextImpl implements RequestContext {
   constructor(
     public readonly id: RequestIDType | undefined,
     public readonly method: string,

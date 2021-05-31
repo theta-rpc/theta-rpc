@@ -10,9 +10,9 @@ import {
 } from "@theta-rpc/json-rpc";
 import { Composer } from "../transport/composer";
 import { Executor } from "../method/executor";
-import { RequestContext } from "./request-context";
+import { RequestContextImpl } from "./request-context";
 import { TransportContext } from "../transport/transport-context";
-import { RequestContextType, ServerOptionsType } from "./types";
+import { RequestContext, ServerOptions } from "./types";
 
 const debug = createDebug("THETA-RPC");
 
@@ -23,9 +23,11 @@ type InternalResponseType =
 export class Server {
   private composer = new Composer();
 
-  constructor(private executor: Executor, options: ServerOptionsType) {
+  constructor(private executor: Executor, options: ServerOptions) {
     this.composer.load(options.transports);
-    this.composer.onRequest((data, transportContext) => this.processRequest(data, transportContext));
+    this.composer.onRequest((data, transportContext) =>
+      this.processRequest(data, transportContext)
+    );
   }
 
   private async processRequest(
@@ -109,7 +111,7 @@ export class Server {
     }
   }
 
-  private tryParseJSON(data: any): any {
+  private tryParseJSON(data: any): unknown {
     try {
       return JSON.parse(data);
     } catch (e) {
@@ -121,8 +123,8 @@ export class Server {
     requestObject: RequestObjectType,
     inBatchScope: boolean,
     transportContext: TransportContext
-  ): RequestContextType {
-    return new RequestContext(
+  ): RequestContext {
+    return new RequestContextImpl(
       requestObject.id,
       requestObject.method,
       requestObject.params,

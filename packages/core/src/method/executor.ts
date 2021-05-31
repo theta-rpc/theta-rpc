@@ -6,9 +6,10 @@ import {
   InternalErrorException,
   successResponseFactory,
   errorResponseFactory,
+  ResponseObjectType,
 } from "@theta-rpc/json-rpc";
 import { Container } from "./container";
-import { RequestContextType } from "../server/types";
+import { RequestContext } from "../server/types";
 import { AccessorType } from "./types";
 
 const errorDebug = createDebug("THETA-RPC:ERROR");
@@ -18,10 +19,10 @@ export class Executor {
 
   private async executeEachAccessor(
     accessors: AccessorType[],
-    requestContext: RequestContextType
+    context: RequestContext
   ): Promise<void> {
     for (const accessor of accessors) {
-      if (!(await accessor(requestContext))) {
+      if (!(await accessor(context))) {
         throw new NoAccessToMethodException();
       }
     }
@@ -37,26 +38,23 @@ export class Executor {
 
   public async execute(
     name: string,
-    requestContext: RequestContextType
-  ): Promise<any> {
+    context: RequestContext
+  ): Promise<ResponseObjectType> {
     try {
       const method = this.tryGetMethod(name);
-      await this.executeEachAccessor(method.accessors, requestContext);
-      const rawResult = await method.handler(requestContext);
+      await this.executeEachAccessor(method.accessors, context);
+      const rawResult = await method.handler(context);
       return successResponseFactory(
         rawResult === undefined ? "" : rawResult,
-        requestContext.id
+        context.id
       );
     } catch (e) {
       if (e instanceof JSONRPCException) {
-        return errorResponseFactory(e, requestContext.id);
+        return errorResponseFactory(e, context.id);
       }
 
       errorDebug(e);
-      return errorResponseFactory(
-        new InternalErrorException(),
-        requestContext.id
-      );
+      return errorResponseFactory(new InternalErrorException(), context.id);
     }
   }
 }

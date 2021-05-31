@@ -1,6 +1,6 @@
 import createDebug from "debug";
-import { ApplicationOptionsType } from "./types";
-import { Server } from "./server";
+import { Application } from "./types";
+import { Server, ServerOptions } from "./server";
 import {
   Explorer,
   Executor,
@@ -11,18 +11,20 @@ import {
 
 const debug = createDebug("THETA-RPC");
 
-export class Application {
+type ApplicationOptions = ServerOptions;
+
+class ApplicationImpl implements Application {
   private container: Container;
   private explorer: Explorer;
   private executor: Executor;
   private server: Server;
 
-  constructor(private options: ApplicationOptionsType) {
+  constructor(private options: ApplicationOptions) {
     debug('Creating an application');
     this.container = new Container();
     this.explorer = new Explorer(this.container);
     this.executor = new Executor(this.container);
-    this.server = new Server(this.executor, this.options.server);
+    this.server = new Server(this.executor, this.options);
     this.exposeInternalMethods();
   }
 
@@ -52,6 +54,6 @@ export class Application {
   }
 }
 
-export function createApplication(options: ApplicationOptionsType) {
-  return new Application(options);
+export function createApplication(options: ApplicationOptions): Application {
+  return new ApplicationImpl(options);
 }

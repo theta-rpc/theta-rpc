@@ -1,7 +1,7 @@
 import { RequestIDType, StructuredParamsType } from '@theta-rpc/json-rpc';
 import { ThetaTransport } from '@theta-rpc/transport';
 
-export type RequestContextType<TParams = StructuredParamsType> = {
+export interface RequestContext<TParams = StructuredParamsType> {
   readonly id: RequestIDType | undefined;
   readonly method: string;
   readonly params: TParams | undefined;
@@ -11,6 +11,6 @@ export type RequestContextType<TParams = StructuredParamsType> = {
   transportContext<T = any>(): T | undefined;
 }
 
-export type ServerOptionsType = {
+export type ServerOptions = {
   transports: ThetaTransport[]
 }
