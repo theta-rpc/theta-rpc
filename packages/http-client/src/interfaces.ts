@@ -5,18 +5,18 @@ import {
   ResponseObjectType,
 } from "@theta-rpc/json-rpc";
 
-export type RequestType = {
+export interface RequestObject {
   method: string;
   notify?: boolean;
   params?: StructuredParamsType;
 };
 
-export type ResponseType = {
+export interface ResponseObject {
   error?: ErrorObjectType;
   result?: any;
 };
 
-export type HTTPClientEventsType = {
+export interface HTTPClientEvents {
   ["request"]: (request: RequestObjectType | RequestObjectType[]) => void;
   ["response"]: (response: ResponseObjectType | ResponseObjectType[]) => void;
 };

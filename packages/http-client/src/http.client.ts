@@ -5,12 +5,12 @@ import {
   requestFactory,
   JSONRPCException
 } from "@theta-rpc/json-rpc";
-import { RequestType, ResponseType, HTTPClientEventsType } from "./types";
+import { RequestObject, ResponseObject, HTTPClientEvents } from "./interfaces";
 import { EventEmitter } from '@theta-rpc/events';
 
 const debug = createDebug("THETA-RPC:HTTP-CLIENT");
 
-export class HTTPClient extends EventEmitter<HTTPClientEventsType> {
+export class HTTPClient extends EventEmitter<HTTPClientEvents> {
   private client: AxiosInstance;
   private headers: any = {};
 
@@ -83,8 +83,8 @@ export class HTTPClient extends EventEmitter<HTTPClientEventsType> {
   }
 
   public async batch(
-    requests: RequestType[]
-  ): Promise<ResponseType[] | undefined> {
+    requests: RequestObject[]
+  ): Promise<ResponseObject[] | undefined> {
     const batchRequest = requests.map(({ method, params, notify }, id) =>
       requestFactory(method, params, notify ? undefined : id + 1)
     );
