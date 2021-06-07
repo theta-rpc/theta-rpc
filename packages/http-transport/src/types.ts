@@ -7,13 +7,14 @@ import {
   FastifyRequest,
   FastifyServerOptions,
   RawServerBase,
+  RawServerDefault
 } from "fastify";
 import { RouteGenericInterface } from 'fastify/types/route';
 
 export type RequestType<RawServer extends RawServerBase> = FastifyRequest<RouteGenericInterface, RawServer>;
 export type ReplyType<RawServer extends RawServerBase> = FastifyReply<RawServer>;
 
-export interface HTTPContext<RawServer extends RawServerBase> {
+export interface HTTPContext<RawServer extends RawServerBase = RawServerDefault> {
   getRequest(): RequestType<RawServer>;
   getReply(): ReplyType<RawServer>;
 }
