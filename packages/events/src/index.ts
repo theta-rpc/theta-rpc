@@ -1,29 +1,28 @@
-import events from "eventemitter3";
+import EventEmitter, { EventNames } from "eventemitter3";
 
-export class EventEmitter<
-  EventTypes extends events.ValidEventTypes
-> extends events.EventEmitter<EventTypes> {
-  constructor() {
-    super();
-  }
-
-  public toPromise<T extends events.EventNames<EventTypes>>(
-    event: T,
-    timeout: number = 2000
-  ): Promise<any> {
-    let emitted: boolean = false;
-
-    return new Promise((resolve, reject) => {
-      //FIXME
-      //@ts-ignore
-      this.once(event, (...args: any[]) => {
-        resolve(args);
-        emitted = true;
-      });
-
-      setTimeout(() => {
-        if (!emitted) reject(new Error("Timeout error"));
-      }, timeout);
-    });
-  }
+interface OnceOptions {
+  timeout: number;
 }
+
+export function once<T extends EventEmitter<any>>(
+  emitter: T,
+  name: T extends EventEmitter<infer X> ? EventNames<X> : never,
+  options?: OnceOptions
+): Promise<any[]> {
+  let timer: NodeJS.Timeout;
+  return new Promise((resolve, reject) => {
+    if (options && options.timeout > 0) {
+      timer = setTimeout(() => {
+        emitter.off(name);
+        reject(new Error("Timeout error"));
+      }, options.timeout);
+    }
+
+    emitter.once(name, (...args: any[]) => {
+      if (timer) clearTimeout(timer);
+      resolve(args);
+    });
+  });
+}
+
+export { EventEmitter };
