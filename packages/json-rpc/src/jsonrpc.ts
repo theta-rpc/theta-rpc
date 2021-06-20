@@ -1,4 +1,4 @@
-import { validateV2 } from './validators';
+import { validateV2 } from "./validators";
 
 export namespace jsonrpc.v2 {
   export const validate = validateV2;
