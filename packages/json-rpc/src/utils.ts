@@ -1,31 +1,10 @@
-import {
-  SuccessResponseObjectType,
-  ErrorResponseObjectType,
-  ErrorObjectType,
-  RequestIDType,
-  RequestObjectType,
-  StructuredParamsType,
-} from "./types";
-import { SPEC_VERSION } from './constants';
+export const assert = (condition: boolean, message?: string) => {
+  if (!condition) {
+    throw new Error(message);
+  }
+};
 
-export function successResponseFactory(
-  result: any,
-  id: RequestIDType = null
-): SuccessResponseObjectType {
-  return { jsonrpc: SPEC_VERSION, result, id };
-}
-
-export function requestFactory(
-  method: string,
-  params?: StructuredParamsType,
-  id?: RequestIDType
-): RequestObjectType {
-  return { jsonrpc: SPEC_VERSION, method, params, id };
-}
-
-export function errorResponseFactory(
-  error: { jsonrpcError: ErrorObjectType },
-  id: RequestIDType = null
-): ErrorResponseObjectType {
-  return { jsonrpc: SPEC_VERSION, error: error.jsonrpcError, id };
-}
+export const has = (o: object, key: string) => o.hasOwnProperty(key);
+export const isArray = (o: any) => Array.isArray(o);
+export const isObject = (o: any) => typeof o === "object" && o !== null && !isArray(o);
+export const len = (o: string) => o.length;
