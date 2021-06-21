@@ -1,12 +1,11 @@
 import net from 'net';
-import NodeIPC from 'node-ipc';
 
-export interface IIPCTransportContext {
+export interface IPCContext {
   getSocket(): net.Socket;
 }
-export type IPCTransportOptionsType  = {
-  host?: string,
-  port?: number,
+
+export interface IPCTransportOptions {
   path?: string,
-  UDPType?: "udp4" | "udp6"
-} & Partial<typeof NodeIPC.config>;
+  autoUnlink?: boolean,
+  attach?: net.Server
+};

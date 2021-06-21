@@ -1,67 +1,92 @@
-import net from 'net';
-import NodeIPC from 'node-ipc';
 import createDebug from 'debug';
+import fs from 'fs';
+import net from 'net';
+import os from 'os';
+import path from 'path';
+//@ts-ignore
+import * as frame from 'frame-stream';
 import { ThetaTransport } from '@theta-rpc/transport';
-import { IIPCTransportContext, IPCTransportOptionsType } from './interfaces';
-import { IPCTransportContext } from './ipc.transport-context';
+import { IPCTransportOptions, IPCContext } from './interfaces';
+import { createIPCContext } from './ipc.context';
 
 const debug = createDebug('THETA-RPC:IPC-TRANSPORT');
 
-export class IPCTransport  extends ThetaTransport {
-  private readonly ipc = new NodeIPC.IPC();
+export class IPCTransport extends ThetaTransport {
+  private readonly kServer: net.Server;
+  private readonly kDefaultPath = path.join(os.tmpdir(), "/jsonrpc.sock");
 
-  constructor(private options: IPCTransportOptionsType) { 
-    super('IPC transport');
-    this.serve();
-    this.setConfig();
+  constructor(private options: IPCTransportOptions) {
+    super("IPC transport");
+    this.kServer = options.attach || net.createServer();
+
     this.listenEvents();
+    this.handleErrors();
+    this.handleConnection();
+    this.tryUnlinkIfSocketExists();
   }
 
-  private setConfig() {
-    const options  = this.options;
-    for (const key of Object.keys(this.options) as Array<
-      keyof typeof options
-    >) {
-      //TODO: exclude host, port, path, UDPType?
-      (this.ipc.config as any)[key] = options[key];
+  private handleErrors() {
+    if(!this.options.attach) {
+      this.kServer.on('error', (err: Error) => {
+        debug(err);
+      });
     }
   }
 
-  private serve() {
-    const { port, host, path, UDPType } = this.options;
-    if (!path && !port) throw new Error("'port' or 'path' must be provided");
-    port ? this.ipc.serveNet(host, port, UDPType) : this.ipc.serve(path!);
+  private tryUnlinkIfSocketExists() {
+    if(this.options.autoUnlink && !this.options.attach) {
+      const path = this.options.path || this.kDefaultPath;
+      if(fs.existsSync(path)) {
+        fs.unlinkSync(path);
+      }
+    }
   }
 
   private listenEvents() {
-    this.on('start', () => this.start());
-    this.on('stop', () => this.stop());
-    this.on('reply', (data, context) => this.reply(data, context));
-    this.ipc.server.on('message', (data, socket) => {
-      const context = this.createContext(socket);
-      this.emit('message', data, context);
-    });
-    this.ipc.server.on('error', (err) => debug(err));
+    this.on("start", () => this.start());
+    this.on("stop", () => this.stop());
+    this.on("reply", (data, context) => this.reply(data, context));
   }
 
-  private createContext(socket: net.Socket): IPCTransportContext {
-    return new IPCTransportContext(socket);
-  }
-
-  private reply(data: any, context: IIPCTransportContext) {
-    const socket = context.getSocket();
-    if(data && !socket.writableEnded) {
-      socket.emit('message', socket, data);
+  private reply(data: unknown, context: IPCContext) {
+    if (data) {
+      const encode = frame.encode();
+      encode.pipe(context.getSocket());
+      encode.write(JSON.stringify(data));
     }
   }
 
+  public static create(path?: string, autoUnlink = false): IPCTransport {
+    return new IPCTransport({ path, autoUnlink });
+  }
+
+  public static attach(server: net.Server): IPCTransport {
+    return new IPCTransport({ attach: server });
+  }
+
+  private handleConnection() {
+    this.kServer.on('connection', (socket) => {
+      socket.pipe(frame.decode()).on('data', (buf: Buffer) => {
+        const context = createIPCContext(socket);
+        this.emit('message', buf.toString(), context);
+      });
+    });
+  }
+
   private start() {
-    this.ipc.server.start();
-    this.ipc.server.on('start', () => this.emit('started'));
+    if(this.options.attach || this.kServer.listening) return;
+
+    const path = this.options.path || this.kDefaultPath;
+    this.kServer.listen(path, (err?: Error) => {
+      if(!err) this.emit('started');
+    });
   }
 
   private stop() {
-    this.ipc.server.stop();
-    this.ipc.server.on('start', () => this.emit('started'));
+    if(this.options.attach || this.kServer.listening) return;
+
+    this.kServer.close((err?: Error) => {
+      if(!err) this.emit('stopped');
+    });
   }
 }

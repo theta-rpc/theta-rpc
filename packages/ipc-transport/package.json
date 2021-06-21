@@ -54,6 +54,7 @@
   "dependencies": {
     "@theta-rpc/transport": "^1.2.2",
     "debug": "^4.3.1",
+    "frame-stream": "^2.0.3",
     "node-ipc": "^9.1.4"
   }
 }
