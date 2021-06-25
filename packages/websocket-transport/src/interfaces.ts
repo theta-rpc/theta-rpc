@@ -1,11 +1,12 @@
-import WebSocket from 'ws';
+import WebSocket from "ws";
 
-export interface IWebSocketTransportOptions {
-  hostname?: string,
-  port: number,
-  path?: string
+export interface WebSocketTransportOptions {
+  hostname?: string;
+  port?: number;
+  path?: string;
+  attach?: WebSocket.Server;
 }
 
-export interface IWebSocketTransportContext {
-  getConnection(): WebSocket
+export interface WebSocketContext {
+  getConnection(): WebSocket;
 }
