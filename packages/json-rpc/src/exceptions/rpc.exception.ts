@@ -1,6 +1,6 @@
 import { ExceptionOptions } from "./interfaces";
 
-export class JSONRPCException extends Error {
+export class RPCException extends Error {
   constructor(public jsonrpcError: ExceptionOptions) {
     super(jsonrpcError.message);
 

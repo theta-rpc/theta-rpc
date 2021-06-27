@@ -1,6 +1,6 @@
-import { JSONRPCException } from "./json-rpc.exception";
+import { RPCException } from "./rpc.exception";
 
-export class InvalidParamsException extends JSONRPCException {
+export class InvalidParamsException extends RPCException {
   constructor(data?: any) {
     super({ code: -32602, message: "Invalid params", data });
   }

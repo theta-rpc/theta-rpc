@@ -1,3 +1,3 @@
-import { jsonrpc } from "../jsonrpc";
+import { ErrorObject } from '../interfaces';
 
-export interface ExceptionOptions extends jsonrpc.v2.ErrorObject {}
+export interface ExceptionOptions extends ErrorObject {}
