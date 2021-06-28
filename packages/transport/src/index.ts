@@ -1,2 +1,2 @@
-export * from './theta-transport';
-export * from './types';
+export * from './transport';
+export * from './interfaces';
