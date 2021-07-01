@@ -1,7 +1,7 @@
 import createDebug from "debug";
 import https from "https";
 import http2 from 'http2';
-import { ThetaTransport } from "@theta-rpc/transport";
+import { Transport } from "@theta-rpc/transport";
 import { createHTTPContext } from "./http.context";
 import createFastifyApplication, {
   FastifyInstance,
@@ -13,21 +13,21 @@ import {
   CommonOptions,
 } from "./types";
 
-const debug = createDebug("THETA-RPC:HTTP-TRANSPORT");
+const debug = createDebug("theta-rpc:http-transport");
 
 export class HTTPTransport<
   RawServer extends RawServerBase = RawServerBase
-> extends ThetaTransport {
+> extends Transport {
 
-  private readonly kServer: FastifyInstance<RawServer>;
-  private readonly kDefaultPath = "/";
-  private readonly kDefaultPort = 3000;
+  private readonly server: FastifyInstance<RawServer>;
+  private readonly defaultPath = "/";
+  private readonly defaultPort = 3000;
   private isRunning = false;
 
   constructor(private options: HTTPTransportOptions<RawServer>) {
     super("HTTP transport");
 
-    this.kServer = options.attach
+    this.server = options.attach
       ? options.attach
       : (createFastifyApplication(options.fastifyOptions) as any);
 
@@ -93,28 +93,28 @@ export class HTTPTransport<
   }
 
   private overwriteContentTypeParser() {
-    if (!this.options.attach) {
-      this.kServer.addContentTypeParser(
-        "application/json",
-        { parseAs: "string" },
-        (request, payload, done) => {
-          done(null, payload);
-        }
-      );
-    }
+    if(this.options.attach) return;
+
+    this.server.addContentTypeParser(
+      "application/json",
+      { parseAs: "string" },
+      (request, payload, done) => {
+        done(null, payload);
+      }
+    );
   }
 
   private overwriteNotFoundHandler() {
-    if (!this.options.attach) {
-      this.kServer.setNotFoundHandler((request, reply) => {
-        reply.status(404).send();
-      });
-    }
+    if(this.options.attach) return;
+
+    this.server.setNotFoundHandler((request, reply) => {
+      reply.status(404).send();
+    });
   }
 
   private registerRoute() {
-    this.kServer.post(
-      this.options.path || this.kDefaultPath,
+    this.server.post(
+      this.options.path || this.defaultPath,
       {
         preHandler: (request, reply, done) => {
           if (request.headers["content-type"] !== "application/json") {
@@ -126,62 +126,52 @@ export class HTTPTransport<
       },
       (request, reply) => {
         const context = createHTTPContext(request, reply);
-        this.emit("message", request.body, context);
+        this.emit("message", (request.body as string), context);
       }
     );
   }
 
   private handleErrors() {
-    if (!this.options.attach) {
-      this.kServer.setErrorHandler((error, request, reply) => {
-        debug(error);
-        reply.status(400).send();
-      });
-    }
+    if(this.options.attach) return;
+
+    this.server.setErrorHandler((error, request, reply) => {
+      debug(error);
+      reply.status(400).send();
+    });
   }
 
-  private reply(data: unknown, context: HTTPContext<RawServer>) {
-    const reply = context.getReply();
-    if (!reply.sent) {
-      if (!data) {
-        reply.status(204).send();
-        return;
-      }
+  private reply(message: string | null, context: unknown) {
+    const reply = (context as HTTPContext<RawServer>).getReply();
+    if(reply.sent) return;
 
-      reply.header("Content-Type", "application/json");
-      reply.send(JSON.stringify(data));
+    if (!message) {
+      reply.status(204).send();
+      return;
     }
+
+    reply.header("Content-Type", "application/json");
+    reply.send(message);
   }
 
   private start() {
-    if (this.isRunning) {
-      debug("The transport is already running");
-      return;
-    }
+    if(this.isRunning || this.options.attach) return;
 
     const { hostname, port } = this.options;
-    if (!this.options.attach) {
-      this.kServer
-        .listen(port || this.kDefaultPort, hostname)
-        .then(() => {
-          this.emit("started");
-          this.isRunning = true;
-        })
-        .catch(debug);
-    }
+    this.server
+      .listen(port || this.defaultPort, hostname)
+      .then(() => {
+        this.emit("started");
+        this.isRunning = true;
+      })
+      .catch(debug);
   }
 
   private stop() {
-    if (!this.isRunning) {
-      debug("The transport is not running");
-      return;
-    }
+    if(!this.isRunning || this.options.attach) return;
 
-    if (!this.options.attach) {
-      this.kServer.close().then(() => {
-        this.emit("stopped");
-        this.isRunning = false;
-      }, debug);
-    }
+    this.server.close().then(() => {
+      this.emit("stopped");
+      this.isRunning = false;
+    }, debug);
   }
 }
